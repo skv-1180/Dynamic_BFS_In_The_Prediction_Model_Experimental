@@ -2,7 +2,9 @@
 #include "../include/InitGraph.h"
 #include "../include/InitialEdges.h"
 #include "../include/PredictedEdges.h"
-#include "../include/realEdges.h"
+#include "../include/RealEdges.h"
+#include "../include/Preprocess.h"
+
 
 Graph initGraph(int noOfVertices, int noOfEdges, int noOfAddionalEdges) {
     EdgeList initialEdges = getInitialEdges(noOfVertices, noOfEdges);
@@ -11,7 +13,8 @@ Graph initGraph(int noOfVertices, int noOfEdges, int noOfAddionalEdges) {
     EdgeList realEdges = getRealEdges(
         noOfVertices, noOfEdges, noOfAddionalEdges, initialEdges, predictedEdges);
 
-    Graph graph{noOfVertices, noOfEdges, initialEdges, predictedEdges, realEdges};
-
+    Graph graph{noOfVertices, noOfEdges, noOfAddionalEdges, initialEdges, predictedEdges, realEdges};
+    
+    graph.setPreprocessedBFSTreeEdges(preprocessPredictedEdges(graph));
     return graph;
 }

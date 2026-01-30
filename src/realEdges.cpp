@@ -1,6 +1,6 @@
 #include <iostream>
 #include "../include/Graph.h"
-#include "../include/realEdges.h"
+#include "../include/RealEdges.h"
 
 EdgeList getRealEdges(
     int noOfVertices, 
