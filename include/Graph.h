@@ -28,35 +28,17 @@ public:
         EdgeList initialEdges, 
         EdgeList predictedEdges, 
         EdgeList realEdges
-    )
-    :   m_numOfVertices{numOfVertices}, 
-        m_numOfInitialEdges{numOfInitialEdges},
-        m_noOfAddionalEdges{noOfAddionalEdges},
-        m_initialEdges{initialEdges},
-        m_predictedEdges{predictedEdges},
-        m_realEdges{realEdges}
-    {
-    }
+    );
 
-    int getNumOfVertices() const {
-        return m_numOfVertices;
-    }
+    int getNumOfVertices() const;
 
-    int getNumOfEdges() const {
-        return m_numOfInitialEdges;
-    }
+    int getNumOfEdges() const;
 
-    EdgeList getInitialEdges() const {
-        return m_initialEdges;
-    }
+    EdgeList getInitialEdges() const;
 
-    void setPreprocessedBFSTreeEdges(const std::vector<EdgeList>& preprocessedBFSTreeEdges) {
-        m_preProcessedBFSTreeEdges = preprocessedBFSTreeEdges;
-    }
+    void setPreprocessedBFSTreeEdges(const std::vector<EdgeList>& preprocessedBFSTreeEdges);
 
     void printGraphMembers() const;
 
     friend std::vector<EdgeList> preprocessPredictedEdges(const Graph& graph);
-
-
 };

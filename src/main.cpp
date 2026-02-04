@@ -2,14 +2,12 @@
 #include <vector>
 #include "../include/Graph.h"
 #include "../include/InitGraph.h"
+#include "../include/Preprocess.h"
 
 int main() {
-    std::cout << "Enter number of vertices, initialEdges and addionalEdges of graph: ";
+    Graph graph = initGraph();
 
-    int noOfVertices, noOfInitialEdges, noOfAddionalEdges;
-    std::cin >> noOfVertices >> noOfInitialEdges >> noOfAddionalEdges;
-
-    Graph graph = initGraph(noOfVertices, noOfInitialEdges, noOfAddionalEdges);
+    graph.setPreprocessedBFSTreeEdges(preprocessPredictedEdges(graph));
 
     graph.printGraphMembers();
     
