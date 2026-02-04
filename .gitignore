@@ -3,3 +3,4 @@ tests/
 .cph
 debugger.h
 *.exe
+bin/
