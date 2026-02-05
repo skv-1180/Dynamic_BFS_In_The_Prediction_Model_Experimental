@@ -19,6 +19,7 @@ $(EXEC): \
 	$(BIN)/Graph.o \
 	$(BIN)/InitGraph.o \
 	$(BIN)/Preprocess.o \
+	$(BIN)/BFSSnapshotStore.o \
 	$(BIN)/main.o
 	$(CC) $^ -o $@
 
@@ -31,11 +32,11 @@ $(BIN)/InitGraph.o: $(SRC)/InitGraph.cpp $(INC)/InitGraph.h
 $(BIN)/Preprocess.o: $(SRC)/Preprocess.cpp $(INC)/Preprocess.h
 	$(CC) $(CFLAGS) $< -o $@
 
+$(BIN)/BFSSnapshotStore.o: $(SRC)/BFSSnapshotStore.cpp $(INC)/BFSSnapshotStore.h $(INC)/Graph.h
+	$(CC) $(CFLAGS) $< -o $@
+
 $(BIN)/main.o: $(SRC)/main.cpp
 	$(CC) $(CFLAGS) $< -o $@
 
 clean:
 	rm -f $(BIN)/*
-
-
-

@@ -22,11 +22,11 @@ private:
     std::vector<EdgeList> m_preProcessedBFSTreeEdges{};
 public:
     Graph(
-        int numOfVertices, 
-        int numOfInitialEdges, 
-        int noOfAddionalEdges, 
-        EdgeList initialEdges, 
-        EdgeList predictedEdges, 
+        int numOfVertices,
+        int numOfInitialEdges,
+        int noOfAddionalEdges,
+        EdgeList initialEdges,
+        EdgeList predictedEdges,
         EdgeList realEdges
     );
 
@@ -35,6 +35,12 @@ public:
     int getNumOfEdges() const;
 
     EdgeList getInitialEdges() const;
+
+    // new getters
+    EdgeList getPredictedEdges() const;
+    EdgeList getRealEdges() const;
+    int getNumOfAdditionalEdges() const;
+    const std::vector<EdgeList>& getPreprocessedBFSTreeEdges() const;
 
     void setPreprocessedBFSTreeEdges(const std::vector<EdgeList>& preprocessedBFSTreeEdges);
 

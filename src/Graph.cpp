@@ -27,6 +27,24 @@ EdgeList Graph::getInitialEdges() const {
     return m_initialEdges;
 }
 
+// --- new getters ---
+EdgeList Graph::getPredictedEdges() const {
+    return m_predictedEdges;
+}
+
+EdgeList Graph::getRealEdges() const {
+    return m_realEdges;
+}
+
+int Graph::getNumOfAdditionalEdges() const {
+    return m_noOfAddionalEdges;
+}
+
+const std::vector<EdgeList>& Graph::getPreprocessedBFSTreeEdges() const {
+    return m_preProcessedBFSTreeEdges;
+}
+// --- end new getters ---
+
 void Graph::setPreprocessedBFSTreeEdges(const std::vector<EdgeList>& preprocessedBFSTreeEdges) {
     m_preProcessedBFSTreeEdges = preprocessedBFSTreeEdges;
 }
@@ -54,6 +72,7 @@ void Graph::printGraphMembers() const {
     std::cout << "==== Preprocessed BFS Tree ====" << std::endl;
 
     for (int i = 0; i < m_noOfAddionalEdges; ++i) {
+        if (i >= (int)m_preProcessedBFSTreeEdges.size()) break;
         const auto& currBFSTreeEdges = m_preProcessedBFSTreeEdges[i];
         const auto& predictedEdge = m_predictedEdges[i];
 
