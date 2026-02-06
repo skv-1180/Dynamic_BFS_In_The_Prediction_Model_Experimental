@@ -11,6 +11,14 @@ struct Edge
 
 using EdgeList = std::vector<Edge>;
 
+struct BFSEntry {
+    int v;
+    int parent;
+    int dist;
+};
+
+using BFSEntryList = std::vector<BFSEntry>;
+
 class Graph{ // Source is assumed to be 1
 private:
     int m_numOfVertices{};
@@ -19,7 +27,10 @@ private:
     EdgeList m_initialEdges{};
     EdgeList m_predictedEdges{};
     EdgeList m_realEdges{};
-    std::vector<EdgeList> m_preProcessedBFSTreeEdges{};
+
+    std::vector<int> m_initialParent;
+    std::vector<int> m_initialDist;
+    std::vector<BFSEntryList> m_changeLists{};
 public:
     Graph(
         int numOfVertices,
@@ -31,20 +42,19 @@ public:
     );
 
     int getNumOfVertices() const;
-
     int getNumOfEdges() const;
-
-    EdgeList getInitialEdges() const;
-
-    // new getters
-    EdgeList getPredictedEdges() const;
-    EdgeList getRealEdges() const;
     int getNumOfAdditionalEdges() const;
+
+    const EdgeList& getInitialEdges() const;
+    const EdgeList& getPredictedEdges() const;
+    const EdgeList& getRealEdges() const;
+    
     const std::vector<EdgeList>& getPreprocessedBFSTreeEdges() const;
 
-    void setPreprocessedBFSTreeEdges(const std::vector<EdgeList>& preprocessedBFSTreeEdges);
+    void setInitialDistance(const std::vector<int>& initialDist);
+    void setInitialParent(const std::vector<int>& initialParent);
+    void setChangeLists(std::vector<BFSEntryList> changeLists);
 
     void printGraphMembers() const;
 
-    friend std::vector<EdgeList> preprocessPredictedEdges(const Graph& graph);
 };

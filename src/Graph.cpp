@@ -1,4 +1,5 @@
 #include "../include/Graph.h"
+#include <utility>
 
 Graph::Graph(
     int numOfVertices,
@@ -23,16 +24,15 @@ int Graph::getNumOfEdges() const {
     return m_numOfInitialEdges;
 }
 
-EdgeList Graph::getInitialEdges() const {
+const EdgeList& Graph::getInitialEdges() const {
     return m_initialEdges;
 }
 
-// --- new getters ---
-EdgeList Graph::getPredictedEdges() const {
+const EdgeList& Graph::getPredictedEdges() const {
     return m_predictedEdges;
 }
 
-EdgeList Graph::getRealEdges() const {
+const EdgeList& Graph::getRealEdges() const {
     return m_realEdges;
 }
 
@@ -40,14 +40,17 @@ int Graph::getNumOfAdditionalEdges() const {
     return m_noOfAddionalEdges;
 }
 
-const std::vector<EdgeList>& Graph::getPreprocessedBFSTreeEdges() const {
-    return m_preProcessedBFSTreeEdges;
+void Graph::setInitialDistance(const std::vector<int>& initialDist){
+    m_initialDist = initialDist;
 }
-// --- end new getters ---
 
-void Graph::setPreprocessedBFSTreeEdges(const std::vector<EdgeList>& preprocessedBFSTreeEdges) {
-    m_preProcessedBFSTreeEdges = preprocessedBFSTreeEdges;
+void Graph::setInitialParent(const std::vector<int>& initialParent){
+    m_initialParent = initialParent;
 }
+
+void Graph::setChangeLists(std::vector<BFSEntryList> changeLists){
+    m_changeLists = std::move(changeLists);
+}  
 
 void Graph::printGraphMembers() const {
     std::cout << "No of vertices: " << m_numOfVertices << std::endl;
@@ -69,19 +72,23 @@ void Graph::printGraphMembers() const {
         std::cout << edge.u << ' ' << edge.v << ' ' << edge.type << std::endl;
     }
 
-    std::cout << "==== Preprocessed BFS Tree ====" << std::endl;
+    std::cout << "==== Initial parent and distance (node, parent, distance) ==== " << std::endl;
+    for(int u = 1; u <= m_numOfVertices; ++u){
+        std::cout << u << ' ' << m_initialParent[u] << ' ' << m_initialDist[u] << std::endl;
+    }
+
+    std::cout << "==== Change Lists (node, parent, distance) ====" << std::endl;
 
     for (int i = 0; i < m_noOfAddionalEdges; ++i) {
-        if (i >= (int)m_preProcessedBFSTreeEdges.size()) break;
-        const auto& currBFSTreeEdges = m_preProcessedBFSTreeEdges[i];
         const auto& predictedEdge = m_predictedEdges[i];
 
         std::cout << "After processing predicted edge: ("
                   << predictedEdge.u << ' ' << predictedEdge.v << ' '
-                  << predictedEdge.type << ") BFS Tree is: " << std::endl;
+                  << predictedEdge.type << ") Changes in BFS Tree are: " << std::endl;
 
-        for (const auto& edge : currBFSTreeEdges) {
-            std::cout << edge.u << ' ' << edge.v << std::endl;
+        for (const auto& changes : m_changeLists[i]) {
+            std::cout << changes.v << ' ' << changes.parent << ' ' 
+            << changes.dist << std::endl;
         }
 
         std::cout << std::endl;
