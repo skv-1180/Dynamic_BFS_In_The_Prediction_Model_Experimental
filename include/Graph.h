@@ -2,11 +2,12 @@
 #include <iostream>
 #include <vector>
 
-struct Edge
-{
+struct Edge {
     int u{};
     int v{};
-    bool type{}; //0 for insertion and 1 for deletion
+    bool type{};  // 0 for insertion and 1 for deletion
+
+    bool operator==(const Edge& e2) const;
 };
 
 using EdgeList = std::vector<Edge>;
@@ -19,8 +20,8 @@ struct BFSEntry {
 
 using BFSEntryList = std::vector<BFSEntry>;
 
-class Graph{ // Source is assumed to be 1
-private:
+class Graph {  // Source is assumed to be 1
+   private:
     int m_numOfVertices{};
     int m_numOfInitialEdges{};
     int m_noOfAddionalEdges{};
@@ -31,15 +32,15 @@ private:
     std::vector<int> m_initialParent;
     std::vector<int> m_initialDist;
     std::vector<BFSEntryList> m_changeLists{};
-public:
+
+   public:
     Graph(
         int numOfVertices,
         int numOfInitialEdges,
         int noOfAddionalEdges,
         EdgeList initialEdges,
         EdgeList predictedEdges,
-        EdgeList realEdges
-    );
+        EdgeList realEdges);
 
     int getNumOfVertices() const;
     int getNumOfEdges() const;
@@ -48,13 +49,13 @@ public:
     const EdgeList& getInitialEdges() const;
     const EdgeList& getPredictedEdges() const;
     const EdgeList& getRealEdges() const;
-    
-    const std::vector<EdgeList>& getPreprocessedBFSTreeEdges() const;
+
+    const std::vector<int>& getInitialDistance() const;
+    const std::vector<int>& getInitialParent() const;
 
     void setInitialDistance(const std::vector<int>& initialDist);
     void setInitialParent(const std::vector<int>& initialParent);
     void setChangeLists(std::vector<BFSEntryList> changeLists);
 
     void printGraphMembers() const;
-
 };

@@ -1,5 +1,14 @@
 #include "../include/Graph.h"
+
 #include <utility>
+
+bool Edge::operator==(const Edge& e2) const {
+    if ((u == e2.u && v == e2.v && type == e2.type) ||
+        (v == e2.u && u == e2.v && type == e2.type)) {
+        return true;
+    }
+    return false;
+}
 
 Graph::Graph(
     int numOfVertices,
@@ -40,17 +49,25 @@ int Graph::getNumOfAdditionalEdges() const {
     return m_noOfAddionalEdges;
 }
 
-void Graph::setInitialDistance(const std::vector<int>& initialDist){
+const std::vector<int>& Graph::getInitialDistance() const {
+    return m_initialDist;
+}
+
+const std::vector<int>& Graph::getInitialParent() const {
+    return m_initialParent;
+}
+
+void Graph::setInitialDistance(const std::vector<int>& initialDist) {
     m_initialDist = initialDist;
 }
 
-void Graph::setInitialParent(const std::vector<int>& initialParent){
+void Graph::setInitialParent(const std::vector<int>& initialParent) {
     m_initialParent = initialParent;
 }
 
-void Graph::setChangeLists(std::vector<BFSEntryList> changeLists){
+void Graph::setChangeLists(std::vector<BFSEntryList> changeLists) {
     m_changeLists = std::move(changeLists);
-}  
+}
 
 void Graph::printGraphMembers() const {
     std::cout << "No of vertices: " << m_numOfVertices << std::endl;
@@ -73,7 +90,7 @@ void Graph::printGraphMembers() const {
     }
 
     std::cout << "==== Initial parent and distance (node, parent, distance) ==== " << std::endl;
-    for(int u = 1; u <= m_numOfVertices; ++u){
+    for (int u = 1; u <= m_numOfVertices; ++u) {
         std::cout << u << ' ' << m_initialParent[u] << ' ' << m_initialDist[u] << std::endl;
     }
 
@@ -87,8 +104,8 @@ void Graph::printGraphMembers() const {
                   << predictedEdge.type << ") Changes in BFS Tree are: " << std::endl;
 
         for (const auto& changes : m_changeLists[i]) {
-            std::cout << changes.v << ' ' << changes.parent << ' ' 
-            << changes.dist << std::endl;
+            std::cout << changes.v << ' ' << changes.parent << ' '
+                      << changes.dist << std::endl;
         }
 
         std::cout << std::endl;

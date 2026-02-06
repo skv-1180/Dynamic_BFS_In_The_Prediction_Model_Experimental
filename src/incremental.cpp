@@ -6,6 +6,37 @@
 #include "../include/utility.h"
 #include "../include/incremental.h"
 
+void processRealEdges(Graph& graph){
+    int numOfVertices = graph.getNumOfVertices();
+    std::vector<std::vector<int>> adjGraph (numOfVertices + 1);
+
+    for (const auto& [u, v, type]: graph.getInitialEdges()){
+        assert(type == 0 && "type should be zero in incremental case");
+        adjGraph[u].push_back(v);
+        adjGraph[v].push_back(u);
+    }
+
+    std::vector<int> distance = graph.getInitialDistance();
+    std::vector<int> parent = graph.getInitialParent();
+
+    int noOfAddionalEdges = graph.getNumOfAdditionalEdges();
+    const auto& RealEdges = graph.getRealEdges();
+    const auto& PredictedEdges = graph.getPredictedEdges();
+
+    bool isPrefixEqual = true;
+    for (int i = 0; i < noOfAddionalEdges; ++i){
+        Edge realEdge = RealEdges[i];
+        Edge predictedEdge = PredictedEdges[i];
+        assert(realEdge.type == 0 && "type should be zero in incremental case");
+        assert(predictedEdge.type == 0 && "type should be zero in incremental case");
+
+        if(!(realEdge == predictedEdge)) {
+            isPrefixEqual = false;
+        } 
+        // -------
+    }   
+}
+
 BFSEntryList insertEdge(
     const Edge& newEdge,
     std::vector<std::vector<int>>& adjGraph,
