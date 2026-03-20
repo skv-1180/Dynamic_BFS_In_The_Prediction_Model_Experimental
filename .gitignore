@@ -1,0 +1,6 @@
+tests/
+*.out
+.cph
+debugger.h
+*.exe
+bin/

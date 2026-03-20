@@ -1,0 +1,36 @@
+# Larger fully-dynamic test: 10 vertices, 12 initial edges, 10 updates
+# Vertices 1..10, source=1
+# A denser graph to exercise more code paths
+10 1 12 10
+1 2
+1 3
+2 4
+2 5
+3 5
+3 6
+4 7
+5 7
+5 8
+6 8
+7 9
+8 10
+1 4 0
+4 8 0
+6 9 0
+2 4 1
+5 7 1
+3 6 1
+7 10 0
+1 10 0
+5 9 0
+8 9 1
+1 4 0
+4 8 0
+6 9 0
+3 5 1
+5 7 1
+3 6 1
+7 10 0
+1 10 0
+2 9 0
+8 9 1
