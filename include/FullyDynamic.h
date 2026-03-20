@@ -1,16 +1,4 @@
 #pragma once
-
-// ============================================================
-// FullyDynamic.h
-// Online fully-dynamic BFS with predictions (Section 5).
-//
-// Preprocessing: O(m²) time and space.
-// Per-update:    O(min(m, η_e + η*_v)) worst case.
-//
-// When the batch cost exceeds O(m), falls back to full BFS
-// recomputation in O(m) (the robust fallback).
-// ============================================================
-
 #include <vector>
 #include "Types.h"
 #include "BFSState.h"
@@ -40,6 +28,5 @@ private:
     BFSState                  m_realGraph;
     EdgeList                  m_realHistory;
 
-    // Fall back to full BFS when batch cost would exceed O(m).
     QueryResult fallbackBFS(int step);
 };

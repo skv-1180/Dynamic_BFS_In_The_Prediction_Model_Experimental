@@ -1,40 +1,20 @@
-// ============================================================
-// main.cpp
-// Entry point.
-//
-// Usage:
-//   ./bin/app [options] [inputfile]
-//
-// Options:
-//   --mode  incremental|decremental|fullydynamic   (default: fullydynamic)
-//   --store full                                   (default: full)
-//   --verify                                       (run correctness check)
-//   --quiet                                        (suppress per-step output)
-//
-// If inputfile is omitted, reads from stdin.
-// ============================================================
-
-#include <iostream>
-#include <string>
-#include <stdexcept>
 #include <algorithm>
 #include <chrono>
+#include <iostream>
+#include <stdexcept>
+#include <string>
 
-#include "../include/Config.h"
-#include "../include/Types.h"
-#include "../include/Graph.h"
-#include "../include/InitGraph.h"
-#include "../include/BFSState.h"
 #include "../include/BFSAlgorithms.h"
-#include "../include/Incremental.h"
+#include "../include/BFSState.h"
+#include "../include/Config.h"
 #include "../include/Decremental.h"
 #include "../include/FullyDynamic.h"
+#include "../include/Graph.h"
+#include "../include/Incremental.h"
+#include "../include/InitGraph.h"
+#include "../include/Types.h"
 
-// -----------------------------------------------------------
-// Helper: print one query result
-// -----------------------------------------------------------
-static void printResult(const QueryResult& r, int n, bool quiet)
-{
+static void printResult(const QueryResult& r, int n, bool quiet) {
     if (quiet) return;
     std::cout << "After update " << r.step
               << (r.usedPrediction ? " [PRED]" : " [BATCH]")
@@ -42,23 +22,23 @@ static void printResult(const QueryResult& r, int n, bool quiet)
     std::cout << "  Vertex | Level | Parent\n";
     for (int v = 1; v <= n; ++v) {
         std::cout << "  " << v << " | ";
-        if (r.level[v] == INF_LEVEL) std::cout << "INF | ";
-        else                         std::cout << r.level[v] << "   | ";
-        if (r.parent[v] == NO_PARENT) std::cout << "none\n";
-        else                          std::cout << r.parent[v] << "\n";
+        if (r.level[v] == INF_LEVEL)
+            std::cout << "INF | ";
+        else
+            std::cout << r.level[v] << "   | ";
+        if (r.parent[v] == NO_PARENT)
+            std::cout << "none\n";
+        else
+            std::cout << r.parent[v] << "\n";
     }
 }
 
-// -----------------------------------------------------------
-// Helper: check result against a fresh BFS
-// -----------------------------------------------------------
 static bool verifyResult(const QueryResult& r,
-                         const BFSState&    realGraph,
-                         int n)
-{
+                         const BFSState& realGraph,
+                         int n) {
     BFSState check(n, realGraph.source);
     check.outAdj = realGraph.outAdj;
-    check.inAdj  = realGraph.inAdj;
+    check.inAdj = realGraph.inAdj;
     check.computeBFS();
 
     bool ok = true;
@@ -74,40 +54,25 @@ static bool verifyResult(const QueryResult& r,
     return ok;
 }
 
-// -----------------------------------------------------------
-// Argument parsing
-//
-// Supported forms:
-//   --flag value    (key-value: --mode, --store)
-//   --flag          (boolean:   --verify, --quiet)
-//   filename        (bare token, not starting with --)
-// -----------------------------------------------------------
-
-// All key-value flags (each consumes the next token as its value).
 static const std::vector<std::string> KV_FLAGS = {"--mode", "--store"};
-// All boolean flags (standalone, no following value).
 static const std::vector<std::string> BOOL_FLAGS = {"--verify", "--quiet"};
 
-static bool isKVFlag(const std::string& s)
-{
-    for (auto& f : KV_FLAGS) if (s == f) return true;
+static bool isKVFlag(const std::string& s) {
+    for (auto& f : KV_FLAGS)
+        if (s == f) return true;
     return false;
 }
-static bool isBoolFlag(const std::string& s)
-{
-    for (auto& f : BOOL_FLAGS) if (s == f) return true;
+static bool isBoolFlag(const std::string& s) {
+    for (auto& f : BOOL_FLAGS)
+        if (s == f) return true;
     return false;
 }
 
-// -----------------------------------------------------------
-// Main
-// -----------------------------------------------------------
-int main(int argc, char** argv)
-{
-    std::string modeStr  = "fullydynamic";
+int main(int argc, char** argv) {
+    std::string modeStr = "fullydynamic";
     std::string storeStr = "full";
-    bool doVerify        = false;
-    bool quiet           = false;
+    bool doVerify = false;
+    bool quiet = false;
     std::string inputFile;
 
     for (int i = 1; i < argc; ++i) {
@@ -118,11 +83,15 @@ int main(int argc, char** argv)
                 return 1;
             }
             std::string val(argv[++i]);
-            if      (a == "--mode")  modeStr  = val;
-            else if (a == "--store") storeStr = val;
+            if (a == "--mode")
+                modeStr = val;
+            else if (a == "--store")
+                storeStr = val;
         } else if (isBoolFlag(a)) {
-            if      (a == "--verify") doVerify = true;
-            else if (a == "--quiet")  quiet    = true;
+            if (a == "--verify")
+                doVerify = true;
+            else if (a == "--quiet")
+                quiet = true;
         } else if (a.rfind("--", 0) == 0) {
             std::cerr << "Warning: unknown flag '" << a << "' ignored\n";
         } else {
@@ -131,8 +100,10 @@ int main(int argc, char** argv)
     }
 
     AlgorithmMode mode = AlgorithmMode::FULLY_DYNAMIC;
-    if      (modeStr == "incremental") mode = AlgorithmMode::INCREMENTAL;
-    else if (modeStr == "decremental") mode = AlgorithmMode::DECREMENTAL;
+    if (modeStr == "incremental")
+        mode = AlgorithmMode::INCREMENTAL;
+    else if (modeStr == "decremental")
+        mode = AlgorithmMode::DECREMENTAL;
 
     StorageMode storeMode = StorageMode::FULL_SNAPSHOTS;
     if (storeStr != "full") {
@@ -167,10 +138,10 @@ int main(int argc, char** argv)
 
     auto t0 = std::chrono::high_resolution_clock::now();
 
-    int  totalUpdates = 0;
-    int  caseOneCount = 0;
-    int  caseTwoCount = 0;
-    bool allCorrect   = true;
+    int totalUpdates = 0;
+    int caseOneCount = 0;
+    int caseTwoCount = 0;
+    bool allCorrect = true;
 
     if (mode == AlgorithmMode::INCREMENTAL) {
         if (!quiet)
@@ -185,16 +156,17 @@ int main(int argc, char** argv)
             auto result = algo.processUpdate(j, upd);
             printResult(result, n, quiet);
             ++totalUpdates;
-            if (result.usedPrediction) ++caseOneCount;
-            else                       ++caseTwoCount;
+            if (result.usedPrediction)
+                ++caseOneCount;
+            else
+                ++caseTwoCount;
 
             if (doVerify && !verifyResult(result, algo.realGraph(), n)) {
                 allCorrect = false;
                 std::cerr << "  -> CORRECTNESS FAILURE at step " << j << "\n";
             }
         }
-    }
-    else if (mode == AlgorithmMode::DECREMENTAL) {
+    } else if (mode == AlgorithmMode::DECREMENTAL) {
         if (!quiet)
             std::cout << "=== Decremental BFS with Predictions ===\n";
 
@@ -207,16 +179,17 @@ int main(int argc, char** argv)
             auto result = algo.processUpdate(j, upd);
             printResult(result, n, quiet);
             ++totalUpdates;
-            if (result.usedPrediction) ++caseOneCount;
-            else                       ++caseTwoCount;
+            if (result.usedPrediction)
+                ++caseOneCount;
+            else
+                ++caseTwoCount;
 
             if (doVerify && !verifyResult(result, algo.realGraph(), n)) {
                 allCorrect = false;
                 std::cerr << "  -> CORRECTNESS FAILURE at step " << j << "\n";
             }
         }
-    }
-    else {
+    } else {
         if (!quiet)
             std::cout << "=== Fully Dynamic BFS with Predictions ===\n";
 
@@ -229,8 +202,10 @@ int main(int argc, char** argv)
             auto result = algo.processUpdate(j, upd);
             printResult(result, n, quiet);
             ++totalUpdates;
-            if (result.usedPrediction) ++caseOneCount;
-            else                       ++caseTwoCount;
+            if (result.usedPrediction)
+                ++caseOneCount;
+            else
+                ++caseTwoCount;
 
             if (doVerify && !verifyResult(result, algo.realGraph(), n)) {
                 allCorrect = false;

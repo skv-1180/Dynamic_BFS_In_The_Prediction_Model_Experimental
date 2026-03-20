@@ -1,13 +1,4 @@
 #pragma once
-
-// ============================================================
-// Decremental.h
-// Online decremental BFS with predictions (Section 4).
-//
-// Preprocessing: O(m²) time and space (stores UP sets).
-// Per-update:    O(min(m, η_e + η*_v)) worst case (Case 2).
-// ============================================================
-
 #include <vector>
 #include "Types.h"
 #include "BFSState.h"

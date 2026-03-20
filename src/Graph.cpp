@@ -1,8 +1,4 @@
-// ============================================================
-// Graph.cpp
-// ============================================================
 #include "../include/Graph.h"
-#include <iomanip>
 
 Graph::Graph(int numVertices, int source,
              EdgeList initialEdges,

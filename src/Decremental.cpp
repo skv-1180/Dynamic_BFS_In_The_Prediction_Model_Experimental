@@ -1,7 +1,3 @@
-// ============================================================
-// Decremental.cpp
-// ============================================================
-
 #include "../include/Decremental.h"
 #include "../include/Preprocess.h"
 #include "../include/BFSAlgorithms.h"
@@ -21,12 +17,10 @@ DecrementalBFS::DecrementalBFS(int numVertices,
     m_realGraph.computeBFS();
     m_realGraph.computeAllUP();
 
-    // Preprocessing: O(m²) — stores level, parent and UP for every step
     m_snapshots = preprocessDecremental(numVertices, source,
                                         initialEdges, predictedUpdates);
 }
 
-// -----------------------------------------------------------
 QueryResult DecrementalBFS::processUpdate(int step,
                                           const EdgeUpdate& realUpdate)
 {
@@ -54,7 +48,6 @@ QueryResult DecrementalBFS::processUpdate(int step,
         return result;
     }
 
-    // Case 2: batch repair from snapshot[i]
     int i = m_lastMatched;
     EdgeList batch(m_realHistory.begin() + i,
                    m_realHistory.end());
@@ -63,8 +56,6 @@ QueryResult DecrementalBFS::processUpdate(int step,
                                     m_realGraph,
                                     batch);
 
-    // Separate the batch into deletions only (incremental setting
-    // guarantees this, but we are defensive here)
     EdgeList delBatch;
     for (const auto& e : batch)
         if (e.type == UpdateType::DELETE)

@@ -1,8 +1,5 @@
-# ============================================================
-# Makefile for Dynamic BFS with Predictions
-# ============================================================
 CXX      = g++
-CXXFLAGS = -std=c++20 -O2 -Wall -Wextra -Wpedantic
+CXXFLAGS = -std=c++20 -O2 -Wall
 DBGFLAGS = -std=c++20 -O0 -g -fsanitize=address,undefined -Wall
 
 PTH = .
@@ -33,14 +30,14 @@ all: $(BIN) $(EXEC)
 
 debug: $(BIN) $(EXEC_DBG)
 
-# ── Release build ─────────────────────────────────────────
+# Release build 
 $(EXEC): $(OBJS)
 	$(CXX) $(CXXFLAGS) $^ -o $@
 
 $(BIN)/%.o: $(SRC)/%.cpp
 	$(CXX) $(CXXFLAGS) -c $< -o $@
 
-# ── Debug build ───────────────────────────────────────────
+# Debug build 
 $(EXEC_DBG): $(OBJS_DBG)
 	$(CXX) $(DBGFLAGS) $^ -o $@
 
@@ -53,7 +50,7 @@ $(BIN):
 clean:
 	rm -rf $(BIN)
 
-# ── Convenience run targets ───────────────────────────────
+# Convenience run targets 
 run_inc: all
 	$(EXEC) --mode incremental --verify data/example_incremental.txt
 
