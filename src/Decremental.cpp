@@ -1,6 +1,6 @@
 #include "../include/Decremental.h"
 #include "../include/Preprocess.h"
-#include "../include/BFSAlgorithms.h"
+#include "../include/utils.h"
 #include <algorithm>
 
 DecrementalBFS::DecrementalBFS(int numVertices,
@@ -68,4 +68,40 @@ QueryResult DecrementalBFS::processUpdate(int step,
     result.usedPrediction  = false;
     result.lastMatchedStep = m_lastMatched;
     return result;
+}
+
+void batchDeleteEdge(BFSState& ws, const EdgeList& batch)
+{
+    int n = ws.n;
+    std::vector<std::set<int>> LL(n + 2);
+    int lStar = n + 1;
+
+    for (const auto& e : batch)
+    {
+        if (e.type != UpdateType::DELETE) continue;
+
+        ws.outAdj[e.u].erase(e.v);
+        ws.inAdj[e.v].erase(e.u);
+
+        if (!ws.UP[e.v].count(e.u)) continue;
+        ws.UP[e.v].erase(e.u);
+
+        if (ws.UP[e.v].empty())
+        {
+            if (ws.level[e.v] != INF_LEVEL)
+            {
+                LL[ws.level[e.v]].insert(e.v);
+                lStar = std::min(lStar, ws.level[e.v]);
+            }
+        }
+        else if (ws.parent[e.v] == e.u)
+        {
+            ws.parent[e.v] = *ws.UP[e.v].begin();
+        }
+    }
+
+    for (int l = lStar; l <= n; ++l)
+    {
+        repairLevel(ws, LL, l);
+    }
 }

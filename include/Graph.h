@@ -5,23 +5,22 @@
 #include "Types.h"
 
 class Graph {
-   public:
+public:
     Graph() = default;
     Graph(int numVertices, int source,
-          EdgeList initialEdges,
+          EdgeList initialEdges,    
           EdgeList predictedUpdates,
           EdgeList realUpdates);
 
-    int numVertices() const { return m_numVertices; }
-    int source() const { return m_source; }
-    const EdgeList& initialEdges() const { return m_initialEdges; }
-    const EdgeList& predictedUpdates() const { return m_predictedUpdates; }
-    const EdgeList& realUpdates() const { return m_realUpdates; }
-    int numUpdates() const { return (int)m_realUpdates.size(); }
-
+    int numVertices() const;
+    int source() const;
+    const EdgeList& initialEdges() const;
+    const EdgeList& predictedUpdates() const;
+    const EdgeList& realUpdates() const;
+    int numUpdates() const;
     void print(std::ostream& os = std::cout) const;
 
-   private:
+private:
     int m_numVertices{};
     int m_source{DEFAULT_SOURCE};
     EdgeList m_initialEdges;

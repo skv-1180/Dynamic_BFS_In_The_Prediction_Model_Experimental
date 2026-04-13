@@ -4,15 +4,16 @@ Graph::Graph(int numVertices, int source,
              EdgeList initialEdges,
              EdgeList predictedUpdates,
              EdgeList realUpdates)
-    : m_numVertices(numVertices)
-    , m_source(source)
-    , m_initialEdges(std::move(initialEdges))
-    , m_predictedUpdates(std::move(predictedUpdates))
-    , m_realUpdates(std::move(realUpdates))
-{}
+    : m_numVertices(numVertices), m_source(source), m_initialEdges(std::move(initialEdges)), m_predictedUpdates(std::move(predictedUpdates)), m_realUpdates(std::move(realUpdates)) {}
 
-void Graph::print(std::ostream& os) const
-{
+int Graph::numVertices() const { return m_numVertices; }
+int Graph::source() const { return m_source; }
+const EdgeList& Graph::initialEdges() const { return m_initialEdges; }
+const EdgeList& Graph::predictedUpdates() const { return m_predictedUpdates; }
+const EdgeList& Graph::realUpdates() const { return m_realUpdates; }
+int Graph::numUpdates() const { return static_cast<int>(m_realUpdates.size()); }
+
+void Graph::print(std::ostream& os) const {
     os << "Vertices: " << m_numVertices
        << "  Source: " << m_source << "\n";
 
@@ -23,7 +24,7 @@ void Graph::print(std::ostream& os) const
     os << "Predicted updates (" << m_predictedUpdates.size() << "):\n";
     for (int i = 0; i < (int)m_predictedUpdates.size(); ++i) {
         const auto& e = m_predictedUpdates[i];
-        os << "  [" << i+1 << "] "
+        os << "  [" << i + 1 << "] "
            << (e.type == UpdateType::INSERT ? "+" : "-")
            << "(" << e.u << "," << e.v << ")\n";
     }
@@ -31,7 +32,7 @@ void Graph::print(std::ostream& os) const
     os << "Real updates (" << m_realUpdates.size() << "):\n";
     for (int i = 0; i < (int)m_realUpdates.size(); ++i) {
         const auto& e = m_realUpdates[i];
-        os << "  [" << i+1 << "] "
+        os << "  [" << i + 1 << "] "
            << (e.type == UpdateType::INSERT ? "+" : "-")
            << "(" << e.u << "," << e.v << ")\n";
     }

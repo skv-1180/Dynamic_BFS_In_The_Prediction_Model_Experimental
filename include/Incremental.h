@@ -28,3 +28,5 @@ class IncrementalBFS {
     BFSState m_realGraph;
     EdgeList m_realHistory;
 };
+
+void batchInsertEdge(BFSState& state, const EdgeList& batch);

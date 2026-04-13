@@ -14,7 +14,7 @@ SRCS = \
   $(SRC)/Graph.cpp       \
   $(SRC)/InitGraph.cpp   \
   $(SRC)/BFSState.cpp    \
-  $(SRC)/BFSAlgorithms.cpp \
+  $(SRC)/utils.cpp \
   $(SRC)/Preprocess.cpp  \
   $(SRC)/Incremental.cpp \
   $(SRC)/Decremental.cpp \

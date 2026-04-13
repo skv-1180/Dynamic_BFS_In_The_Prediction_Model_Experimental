@@ -5,7 +5,7 @@
 #include "Config.h"
 
 struct EdgeUpdate {
-    int u{};  // u -> v
+    int u{};  // u->v
     int v{};
     UpdateType type{};
 
@@ -25,14 +25,6 @@ struct BFSSnapshot {
     bool hasUpperParents{false};              // do upperParents contain valid data?
 };
 
-struct ProblemInstance {
-    int numVertices{};
-    int source{DEFAULT_SOURCE};
-    EdgeList initialEdges;
-    EdgeList predictedUpdates;
-    EdgeList realUpdates;
-};
-
 struct QueryResult {
     int step{};  // which real update was just processed
     std::vector<int> level;
@@ -40,3 +32,11 @@ struct QueryResult {
     bool usedPrediction{};  // true when stored bfs tree was used directly
     int lastMatchedStep{};
 };
+
+// struct ProblemInstance1 {
+//     int numVertices{};
+//     int source{DEFAULT_SOURCE};
+//     EdgeList initialEdges;
+//     EdgeList predictedUpdates;
+//     EdgeList realUpdates;
+// };

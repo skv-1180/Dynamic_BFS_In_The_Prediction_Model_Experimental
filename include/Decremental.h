@@ -27,3 +27,5 @@ private:
     BFSState                  m_realGraph;
     EdgeList                  m_realHistory;
 };
+
+void batchDeleteEdge(BFSState& state, const EdgeList& batch);

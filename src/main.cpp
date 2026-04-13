@@ -4,7 +4,7 @@
 #include <stdexcept>
 #include <string>
 
-#include "../include/BFSAlgorithms.h"
+#include "../include/utils.h"
 #include "../include/BFSState.h"
 #include "../include/Config.h"
 #include "../include/Decremental.h"

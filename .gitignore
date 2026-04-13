@@ -4,3 +4,4 @@ tests/
 debugger.h
 *.exe
 bin/
+results/
