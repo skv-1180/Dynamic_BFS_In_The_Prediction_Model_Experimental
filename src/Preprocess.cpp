@@ -1,62 +1,245 @@
-#include <iostream>
-#include <vector>
-#include <set>
-#include <queue>
-#include <utility>
-#include "../include/Graph.h"
+// ============================================================
+// Preprocess.cpp
+// ============================================================
+
 #include "../include/Preprocess.h"
 
-EdgeList calculateBFSTree (int noOfVertices, const std::vector<std::set<int>>& adjGraph) {
-    int source = 1;
-    std::queue<int> q;
-    q.push(source);
-
-    std::vector <bool> visited(noOfVertices+1);
-    visited[source] = true;
-
-    EdgeList BFSTreeEdges {};
-
-    while (!q.empty()) {
-        int parent = q.front();
-        q.pop();
-
-        for (auto child : adjGraph[parent]) {
-            if (visited[child]) continue;
-
-            BFSTreeEdges.push_back({parent, child});
-            visited[child] = true;
-            q.push(child);
-        }
+// Helper: build the initial BFSState from G_0
+static BFSState buildInitialState(int numVertices, int source,
+                                  const EdgeList& initialEdges)
+{
+    BFSState state(numVertices, source);
+    for (const auto& e : initialEdges) {
+        state.addEdge(e.u, e.v);
     }
-
-    return BFSTreeEdges;
+    state.computeBFS();
+    return state;
 }
 
-std::vector<EdgeList> preprocessPredictedEdges(const Graph& graph){
-    int numOfVertices = graph.m_numOfVertices;
+void classicalInsertEdge(BFSState& state, int u, int v)
+{
+    state.addEdge(u, v);
 
-    std::vector<std::set<int>> adjGraph (numOfVertices + 1);
+    if (state.level[u] == INF_LEVEL) return;
+    if (state.level[v] <= state.level[u] + 1) return;
 
-    std::vector<EdgeList> preProcessedBFSTreeEdges;
+    int n = state.n;
+    std::vector<std::vector<int>> LR(n + 2);
 
-    for (const auto& [u, v, type]: graph.m_initialEdges){
-        adjGraph[u].insert(v);
-        adjGraph[v].insert(u);
-    }
-    
-    for (const auto& [u, v, type]: graph.m_predictedEdges) {
-        if (!type){ // insertion
-            adjGraph[u].insert(v);
-            adjGraph[v].insert(u);
-        }else{
-            adjGraph[u].erase(v);
-            adjGraph[v].erase(u);
+    state.parent[v] = u;
+    state.level[v] = state.level[u] + 1;
+    LR[state.level[v]].push_back(v);
+
+    for (int l = state.level[v]; l <= n; ++l)
+    {
+        for (int idx = 0; idx < (int)LR[l].size(); ++idx)
+        {
+            int y = LR[l][idx];
+            for (int z : state.outAdj[y])
+            {
+                if (state.level[z] > state.level[y] + 1)
+                {
+                    state.level[z] = state.level[y] + 1;
+                    state.parent[z] = y;
+                    LR[state.level[z]].push_back(z);
+                }
+            }
         }
-
-        preProcessedBFSTreeEdges.push_back(
-            calculateBFSTree (numOfVertices, adjGraph)
-        );
     }
 
-    return preProcessedBFSTreeEdges;
+    // Keep UP consistent for vertices whose level changed
+    // (needed when this is used during decremental / fd preprocessing)
+    for (int l = state.level[v]; l <= n; ++l)
+    {
+        for (int y : LR[l])
+        {
+            // Recompute UP[y]
+            state.UP[y].clear();
+            for (int p : state.inAdj[y])
+            {
+                if (state.level[p] != INF_LEVEL &&
+                    state.level[p] == state.level[y] - 1)
+                {
+                    state.UP[y].insert(p);
+                }
+            }
+        }
+    }
+}
+
+void classicalDeleteEdge(BFSState& state, int u, int v)
+{
+    state.removeEdge(u, v);
+
+    if (!state.UP[v].count(u)) return;
+    state.UP[v].erase(u);
+
+    if (!state.UP[v].empty())
+    {
+        if (state.parent[v] == u)
+            state.parent[v] = *state.UP[v].begin();
+        return;
+    }
+
+    int n = state.n;
+    std::vector<std::set<int>> LL(n + 2);
+    LL[state.level[v]].insert(v);
+
+    for (int l = state.level[v]; l <= n; ++l)
+    {
+        while (!LL[l].empty())
+        {
+            int x = *LL[l].begin();
+            LL[l].erase(LL[l].begin());
+
+            if (!state.UP[x].empty())
+            {
+                state.parent[x] = *state.UP[x].begin();
+                continue;
+            }
+
+            state.level[x]++;
+            if (state.level[x] > n)
+            {
+                state.level[x] = INF_LEVEL;
+                state.parent[x] = NO_PARENT;
+                state.UP[x].clear();
+                for (int y : state.outAdj[x])
+                {
+                    if (state.UP[y].count(x))
+                    {
+                        state.UP[y].erase(x);
+                        if (state.UP[y].empty())
+                        {
+                            LL[state.level[y]].insert(y);
+                        }
+                        else if (state.parent[y] == x)
+                        {
+                            state.parent[y] = *state.UP[y].begin();
+                        }
+                    }
+                }
+                continue;
+            }
+
+            LL[state.level[x]].insert(x);
+
+            state.UP[x].clear();
+            for (int p : state.inAdj[x])
+            {
+                if (state.level[p] != INF_LEVEL &&
+                    state.level[p] == state.level[x] - 1)
+                {
+                    state.UP[x].insert(p);
+                }
+            }
+            if (!state.UP[x].empty())
+            {
+                state.parent[x] = *state.UP[x].begin();
+            }
+
+            for (int y : state.outAdj[x])
+            {
+                if (state.UP[y].count(x))
+                {
+                    state.UP[y].erase(x);
+                    if (state.UP[y].empty())
+                    {
+                        LL[state.level[y]].insert(y);
+                    }
+                    else if (state.parent[y] == x)
+                    {
+                        state.parent[y] = *state.UP[y].begin();
+                    }
+                }
+            }
+        }
+    }
+}
+
+// ===========================================================
+// Incremental preprocessing
+// Run classical incremental BFS on the predicted insertions.
+// ===========================================================
+std::vector<BFSSnapshot> preprocessIncremental(
+    int             numVertices,
+    int             source,
+    const EdgeList& initialEdges,
+    const EdgeList& predictedUpdates)
+{
+    BFSState state = buildInitialState(numVertices, source, initialEdges);
+    int m = (int)predictedUpdates.size();
+    std::vector<BFSSnapshot> snapshots(m + 1);
+    snapshots[0] = state.saveSnapshot(/*saveUP=*/false);
+
+    for (int i = 0; i < m; ++i) {
+        const auto& e = predictedUpdates[i];
+        // All updates must be insertions in the incremental setting
+        if (e.type == UpdateType::INSERT) {
+            classicalInsertEdge(state, e.u, e.v);
+        }
+        // If a deletion appears in a supposedly incremental sequence,
+        // we skip it (defensive programming).
+        snapshots[i + 1] = state.saveSnapshot(false); //saveUP
+    }
+    return snapshots;
+}
+
+// ===========================================================
+// Decremental preprocessing
+// Run classical decremental BFS on the predicted deletions.
+// ===========================================================
+std::vector<BFSSnapshot> preprocessDecremental(
+    int             numVertices,
+    int             source,
+    const EdgeList& initialEdges,
+    const EdgeList& predictedUpdates)
+{
+    BFSState state = buildInitialState(numVertices, source, initialEdges);
+    state.computeAllUP(); // UP sets required for decremental repair
+
+    int m = (int)predictedUpdates.size();
+    std::vector<BFSSnapshot> snapshots(m + 1);
+    snapshots[0] = state.saveSnapshot(true); // saveUP
+
+    for (int i = 0; i < m; ++i) {
+        const auto& e = predictedUpdates[i];
+        if (e.type == UpdateType::DELETE) {
+            classicalDeleteEdge(state, e.u, e.v);
+        }
+        snapshots[i + 1] = state.saveSnapshot(true); //saveUP
+    }
+    return snapshots;
+}
+
+// ===========================================================
+// Fully-dynamic preprocessing
+// After each predicted update, run a full BFS from scratch.
+// O(m^2) total time; simpler and always correct for mixed updates.
+// ===========================================================
+std::vector<BFSSnapshot> preprocessFullyDynamic(
+    int             numVertices,
+    int             source,
+    const EdgeList& initialEdges,
+    const EdgeList& predictedUpdates)
+{
+    BFSState state = buildInitialState(numVertices, source, initialEdges);
+    state.computeAllUP();
+
+    int m = (int)predictedUpdates.size();
+    std::vector<BFSSnapshot> snapshots(m + 1);
+    snapshots[0] = state.saveSnapshot(/*saveUP=*/true);
+
+    for (int i = 0; i < m; ++i) {
+        const auto& e = predictedUpdates[i];
+        if (e.type == UpdateType::INSERT) {
+            state.addEdge(e.u, e.v);
+        } else {
+            state.removeEdge(e.u, e.v);
+        }
+        state.computeBFS();
+        state.computeAllUP();
+        snapshots[i + 1] = state.saveSnapshot(true);
+    }
+    return snapshots;
 }

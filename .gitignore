@@ -1,6 +1,9 @@
-tests/
+testcases/
 *.out
 .cph
 debugger.h
 *.exe
 bin/
+extra/
+venv/
+

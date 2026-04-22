@@ -1,0 +1,45 @@
+# Type: fully dynamic
+# Error rate: 0.4
+# format: n source numInitialEdges numUpdates
+# next numInitialEdges lines: u v (directed edge u->v in G_0)
+# next numUpdates lines: u v type (real update)
+# next numUpdates lines: u v type (predicted update)
+10 1 18 10
+1 2
+1 3
+1 5
+1 10
+4 2
+4 8
+5 2
+6 2
+6 7
+7 2
+7 4
+7 6
+8 6
+8 7
+8 9
+9 4
+10 2
+10 3
+7 3 0
+7 5 0
+1 4 0
+2 8 0
+7 9 0
+1 10 1
+6 1 0
+5 10 0
+3 1 0
+5 6 0
+7 3 0
+2 8 0
+1 4 0
+7 5 0
+1 10 1
+7 9 0
+5 10 0
+6 1 0
+5 6 0
+3 1 0

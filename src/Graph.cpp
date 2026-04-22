@@ -1,70 +1,42 @@
+// ============================================================
+// Graph.cpp
+// ============================================================
 #include "../include/Graph.h"
+#include <iomanip>
 
-Graph::Graph(
-    int numOfVertices,
-    int numOfInitialEdges,
-    int noOfAddionalEdges,
-    EdgeList initialEdges,
-    EdgeList predictedEdges,
-    EdgeList realEdges)
-    : m_numOfVertices{numOfVertices},
-      m_numOfInitialEdges{numOfInitialEdges},
-      m_noOfAddionalEdges{noOfAddionalEdges},
-      m_initialEdges{initialEdges},
-      m_predictedEdges{predictedEdges},
-      m_realEdges{realEdges} {
-}
+Graph::Graph(int numVertices, int source,
+             EdgeList initialEdges,
+             EdgeList predictedUpdates,
+             EdgeList realUpdates)
+    : m_numVertices(numVertices)
+    , m_source(source)
+    , m_initialEdges(std::move(initialEdges))
+    , m_predictedUpdates(std::move(predictedUpdates))
+    , m_realUpdates(std::move(realUpdates))
+{}
 
-int Graph::getNumOfVertices() const {
-    return m_numOfVertices;
-}
+void Graph::print(std::ostream& os) const
+{
+    os << "Vertices: " << m_numVertices
+       << "  Source: " << m_source << "\n";
 
-int Graph::getNumOfEdges() const {
-    return m_numOfInitialEdges;
-}
+    os << "Initial edges (" << m_initialEdges.size() << "):\n";
+    for (const auto& e : m_initialEdges)
+        os << "  " << e.u << " -> " << e.v << "\n";
 
-EdgeList Graph::getInitialEdges() const {
-    return m_initialEdges;
-}
-
-void Graph::setPreprocessedBFSTreeEdges(const std::vector<EdgeList>& preprocessedBFSTreeEdges) {
-    m_preProcessedBFSTreeEdges = preprocessedBFSTreeEdges;
-}
-
-void Graph::printGraphMembers() const {
-    std::cout << "No of vertices: " << m_numOfVertices << std::endl;
-    std::cout << "No of edges: " << m_numOfInitialEdges << std::endl;
-    std::cout << "No of additonal edges: " << m_noOfAddionalEdges << std::endl;
-
-    std::cout << "==== Initial Edges ====" << std::endl;
-    for (const auto& edge : m_initialEdges) {
-        std::cout << edge.u << ' ' << edge.v << std::endl;
+    os << "Predicted updates (" << m_predictedUpdates.size() << "):\n";
+    for (int i = 0; i < (int)m_predictedUpdates.size(); ++i) {
+        const auto& e = m_predictedUpdates[i];
+        os << "  [" << i+1 << "] "
+           << (e.type == UpdateType::INSERT ? "+" : "-")
+           << "(" << e.u << "," << e.v << ")\n";
     }
 
-    std::cout << "==== Predicted Edges ====" << std::endl;
-    for (const auto& edge : m_predictedEdges) {
-        std::cout << edge.u << ' ' << edge.v << ' ' << edge.type << std::endl;
-    }
-
-    std::cout << "==== Real Edges ====" << std::endl;
-    for (const auto& edge : m_realEdges) {
-        std::cout << edge.u << ' ' << edge.v << ' ' << edge.type << std::endl;
-    }
-
-    std::cout << "==== Preprocessed BFS Tree ====" << std::endl;
-
-    for (int i = 0; i < m_noOfAddionalEdges; ++i) {
-        const auto& currBFSTreeEdges = m_preProcessedBFSTreeEdges[i];
-        const auto& predictedEdge = m_predictedEdges[i];
-
-        std::cout << "After processing predicted edge: ("
-                  << predictedEdge.u << ' ' << predictedEdge.v << ' '
-                  << predictedEdge.type << ") BFS Tree is: " << std::endl;
-
-        for (const auto& edge : currBFSTreeEdges) {
-            std::cout << edge.u << ' ' << edge.v << std::endl;
-        }
-
-        std::cout << std::endl;
+    os << "Real updates (" << m_realUpdates.size() << "):\n";
+    for (int i = 0; i < (int)m_realUpdates.size(); ++i) {
+        const auto& e = m_realUpdates[i];
+        os << "  [" << i+1 << "] "
+           << (e.type == UpdateType::INSERT ? "+" : "-")
+           << "(" << e.u << "," << e.v << ")\n";
     }
 }

@@ -1,44 +1,36 @@
 #pragma once
+
+// ============================================================
+// Graph.h  –  problem-instance container
+// ============================================================
+
 #include <iostream>
-#include <vector>
 
-struct Edge
+#include "Config.h"
+#include "Types.h"
+
+class Graph
 {
-    int u{};
-    int v{};
-    bool type{}; //0 for insertion and 1 for deletion
-};
+   public:
+    Graph() = default;
+    Graph(int numVertices, int source,
+          EdgeList initialEdges,
+          EdgeList predictedUpdates,
+          EdgeList realUpdates);
 
-using EdgeList = std::vector<Edge>;
+    int numVertices() const { return m_numVertices; }
+    int source() const { return m_source; }
+    const EdgeList& initialEdges() const { return m_initialEdges; }
+    const EdgeList& predictedUpdates() const { return m_predictedUpdates; }
+    const EdgeList& realUpdates() const { return m_realUpdates; }
+    int numUpdates() const { return (int)m_realUpdates.size(); }
 
-class Graph{ // Source is assumed to be 1
-private:
-    int m_numOfVertices{};
-    int m_numOfInitialEdges{};
-    int m_noOfAddionalEdges{};
-    EdgeList m_initialEdges{};
-    EdgeList m_predictedEdges{};
-    EdgeList m_realEdges{};
-    std::vector<EdgeList> m_preProcessedBFSTreeEdges{};
-public:
-    Graph(
-        int numOfVertices, 
-        int numOfInitialEdges, 
-        int noOfAddionalEdges, 
-        EdgeList initialEdges, 
-        EdgeList predictedEdges, 
-        EdgeList realEdges
-    );
+    void print(std::ostream& os = std::cout) const;
 
-    int getNumOfVertices() const;
-
-    int getNumOfEdges() const;
-
-    EdgeList getInitialEdges() const;
-
-    void setPreprocessedBFSTreeEdges(const std::vector<EdgeList>& preprocessedBFSTreeEdges);
-
-    void printGraphMembers() const;
-
-    friend std::vector<EdgeList> preprocessPredictedEdges(const Graph& graph);
+   private:
+    int m_numVertices{};
+    int m_source{DEFAULT_SOURCE};
+    EdgeList m_initialEdges;
+    EdgeList m_predictedUpdates;
+    EdgeList m_realUpdates;
 };
