@@ -1,17 +1,3 @@
-// ============================================================
-// InitGraph.cpp
-// ============================================================
-//
-// Input file format
-// -----------------
-// Line 1:  numVertices  source  numInitialEdges  numUpdates
-// Next numInitialEdges lines:  u v       (directed edge u->v in G_0)
-// Next numUpdates lines:       u v type  (predicted update; type 0=insert,1=delete)
-// Next numUpdates lines:       u v type  (real      update)
-//
-// Lines beginning with '#' are comments and are ignored.
-// ============================================================
-
 #include "../include/InitGraph.h"
 #include <fstream>
 #include <sstream>

@@ -1,10 +1,5 @@
-// ============================================================
-// Preprocess.cpp
-// ============================================================
-
 #include "../include/Preprocess.h"
 
-// Helper: build the initial BFSState from G_0
 static BFSState buildInitialState(int numVertices, int source,
                                   const EdgeList& initialEdges)
 {
@@ -157,10 +152,6 @@ void classicalDeleteEdge(BFSState& state, int u, int v)
     }
 }
 
-// ===========================================================
-// Incremental preprocessing
-// Run classical incremental BFS on the predicted insertions.
-// ===========================================================
 std::vector<BFSSnapshot> preprocessIncremental(
     int             numVertices,
     int             source,
@@ -185,10 +176,6 @@ std::vector<BFSSnapshot> preprocessIncremental(
     return snapshots;
 }
 
-// ===========================================================
-// Decremental preprocessing
-// Run classical decremental BFS on the predicted deletions.
-// ===========================================================
 std::vector<BFSSnapshot> preprocessDecremental(
     int             numVertices,
     int             source,
@@ -212,11 +199,6 @@ std::vector<BFSSnapshot> preprocessDecremental(
     return snapshots;
 }
 
-// ===========================================================
-// Fully-dynamic preprocessing
-// After each predicted update, run a full BFS from scratch.
-// O(m^2) total time; simpler and always correct for mixed updates.
-// ===========================================================
 std::vector<BFSSnapshot> preprocessFullyDynamic(
     int             numVertices,
     int             source,

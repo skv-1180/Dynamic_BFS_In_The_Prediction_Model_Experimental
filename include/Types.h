@@ -1,19 +1,11 @@
 #pragma once
 
-// ============================================================
-// Types.h
-// Core data-types shared across all modules.
-// ============================================================
-
 #include <set>
 #include <string>
 #include <unordered_set>
 #include <vector>
 #include "Config.h"
 
-// -----------------------------------------------------------
-// A single directed-edge update (insertion or deletion).
-// -----------------------------------------------------------
 struct EdgeUpdate
 {
     int u{};            // tail of the directed edge  u -> v
@@ -42,13 +34,6 @@ struct EdgeUpdateHash
 using EdgeList = std::vector<EdgeUpdate>;
 using SimpleEdge = std::pair<int, int>;  // (u, v) without type
 
-// -----------------------------------------------------------
-// A lightweight snapshot of the BFS tree after predicted step i.
-// Stores level, parent and (optionally) upper-parent sets.
-// Does NOT store graph adjacency — that is reconstructed on
-// demand by replaying the real update history up to the last
-// matched step.
-// -----------------------------------------------------------
 struct BFSSnapshot
 {
     std::vector<int> level;                             // level[v], 1-indexed; INF_LEVEL if unreachable
@@ -58,9 +43,6 @@ struct BFSSnapshot
     bool hasUpperParents{false};                        // flag: do upperParents contain valid data?
 };
 
-// -----------------------------------------------------------
-// Result returned to the user after processing update j.
-// -----------------------------------------------------------
 struct QueryResult
 {
     int step{};               // which real update was just processed

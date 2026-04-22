@@ -1,9 +1,4 @@
 #pragma once
-
-// ============================================================
-// Graph.h  –  problem-instance container
-// ============================================================
-
 #include <iostream>
 
 #include "Config.h"

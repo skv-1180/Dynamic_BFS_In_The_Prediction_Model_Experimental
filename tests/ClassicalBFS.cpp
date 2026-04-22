@@ -1,14 +1,3 @@
-// ============================================================
-// ClassicalBFS.cpp
-// Timing wrappers for classical BFS algorithms from:
-//   "Decremental algorithm for maintaining Shortest-Path Tree"
-//   "Incremental algorithm for maintaining Shortest-Path Tree"
-//   IITD Lecture Notes
-//
-// These are SINGLE-EDGE-UPDATE algorithms (not batch).
-// Each update is applied and timed individually.
-// N runs are performed; minimum total time is reported.
-// ============================================================
 #include "ClassicalBFS.h"
 
 #include <algorithm>
