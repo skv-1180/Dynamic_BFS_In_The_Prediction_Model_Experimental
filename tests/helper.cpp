@@ -10,25 +10,65 @@ std::string extractTestCaseName(const std::string& path) {
     return std::filesystem::path(path).stem().string();
 }
 
+// double extractErrorRate(const std::string& test_case) {
+//     auto pos = test_case.find("err");
+//     if (pos == std::string::npos || pos + 3 >= test_case.size()) return -1.0;
+
+//     try {
+//         return std::stod(test_case.substr(pos + 3));
+//     } catch (...) {
+//         return -1.0;
+//     }
+// }
+
 double extractErrorRate(const std::string& test_case) {
     auto pos = test_case.find("err");
-    if (pos == std::string::npos || pos + 3 >= test_case.size()) return -1.0;
+    if (pos == std::string::npos) return -1.0;
+
+    pos += 3; // move after "err"
+
+    size_t end = pos;
+    while (end < test_case.size() &&
+           (isdigit(test_case[end]) || test_case[end] == '.')) {
+        end++;
+    }
 
     try {
-        return std::stod(test_case.substr(pos + 3));
+        return std::stod(test_case.substr(pos, end - pos));
     } catch (...) {
         return -1.0;
     }
 }
 
+// std::string extractGraphName(const std::string& test_case) {
+//     auto gp = test_case.find("graph_");
+//     if (gp == std::string::npos) return "unknown";
+
+//     auto us = test_case.find('_', gp + 6);
+//     return test_case.substr(gp + 6,
+//                             us == std::string::npos ? std::string::npos
+//                                                     : us - (gp + 6));
+// }
+
 std::string extractGraphName(const std::string& test_case) {
     auto gp = test_case.find("graph_");
     if (gp == std::string::npos) return "unknown";
 
-    auto us = test_case.find('_', gp + 6);
-    return test_case.substr(gp + 6,
-                            us == std::string::npos ? std::string::npos
-                                                    : us - (gp + 6));
+    size_t start = gp + 6;
+
+    // stop at "_mode_" instead of first '_'
+    auto end = test_case.find("_mode_", start);
+
+    if (end == std::string::npos) {
+        // fallback: stop at next '_'
+        end = test_case.find('_', start);
+    }
+
+    if (end == std::string::npos) {
+        return test_case.substr(start);
+    }
+
+    return test_case.substr(start, end - start);
 }
 
 std::string timeCSVHeader() {

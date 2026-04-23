@@ -6,3 +6,4 @@ testcases/
 bin/
 venv/
 extra/
+data/
