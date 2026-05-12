@@ -7,3 +7,10 @@ bin/
 venv/
 extra/
 data/
+sfdt/
+venv-win/
+generator/inp.t
+generator/out.t
+generator/checkEta.cpp
+
+

@@ -6,6 +6,7 @@
 #include "BFSState.h"
 #include "Types.h"
 #include "timer.h"
+#include "../include/utils.h"
 using namespace std;
 
 // #ifdef CODER
@@ -61,6 +62,8 @@ class FullyDynamicBFS
     int prevIdx{0};  // lastIdxUptoWhichRealUpdatesAreInsertedInRunningGraph
     vector<unordered_set<int>> prevInList; 
     vector<unordered_set<int>> prevOutList; 
+    UpdateHashOnly predHash;
+    UpdateHashOnly realHash;
 
 };
 

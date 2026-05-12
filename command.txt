@@ -79,3 +79,45 @@ Wall time     : 4601.289 ms
 
 > bin/app --quiet data/benchmark/testcasesReal/_mode_fullydynamic_0.50_graph_subset_n5000_m6000_mode_2_.txt 
 Wall time     : 2983.517 ms
+
+-----------------------
+mingw32-make -f Makefile.win
+.\bin\app.exe
+.\bin\app.exe --mode incremental --verify --quiet data/benchmark/testcases/graph_synthetic_mode_incremental_strategy_prefix_err1.00_case00_m200.txt 
+
+mingw32-make -f Makefile.win bench
+.\bin\benchmark.exe
+
+mingw32-make -f Makefile.win clean
+
+/*************
+cd path\to\Prediction_Model_Experimental
+py -m venv venv-win
+.\venv-win\Scripts\Activate.ps1
+
+pip install -r requirements.txt
+
+python your_script.py
+
+python tools/plot_results.py `
+  --time-csv results/time_vs_error.csv `
+  --eta-csv results/eta_scatter.csv `
+  --output-dir results/plots 
+
+python tools/benchmark_runner.py `
+  --binary .\bin\benchmark.exe `
+  --test-dir data\benchmark\testcasesReal `
+  --csv-time results\time_vs_error.csv `
+  --csv-eta results\eta_scatter.csv `
+  --modes incremental decremental fullydynamic `
+  --runs 1 `
+  --ec-modes off on
+
+python tools/benchmark_runner.py `
+  --binary .\bin\benchmark.exe `
+  --test-dir sfdt `
+  --csv-time results\time_vs_error.csv `
+  --csv-eta results\eta_scatter.csv `
+  --modes incremental decremental fullydynamic `
+  --runs 5 `
+  --ec-modes off on

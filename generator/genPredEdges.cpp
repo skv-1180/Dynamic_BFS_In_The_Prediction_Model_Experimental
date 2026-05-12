@@ -9,12 +9,13 @@ using namespace std;
 int main() {
     try {
         // string folder = "testcases/erdos/withoutPredictedEdges";
-        // string folder = "testcases/realGraphs/withoutLarge";
+        string folder = "testcases/realGraphs/withoutPredictedEdges";
         // string out_folder = "testcases/withPredictedEdgesReal";
+        string out_folder = "testcases/withPredEdgesTesting";
         
         // standford
-        string folder = "../data/benchmark/testcases";
-        string out_folder = "testcases/withPredictedEdgesRealStandFord";
+        // string folder = "../data/benchmark/testcases";
+        // string out_folder = "testcases/withPredictedEdgesRealStandFord";
 
         vector<string> files;
         for (const auto& entry : filesystem::directory_iterator(folder)) {
@@ -46,6 +47,7 @@ int main() {
                     double achievedErrorRate = computeAchievedStateErrorRate(instance);
                     p = achievedErrorRate;
                 }
+
 
                 ostringstream oss;
                 oss << fixed << setprecision(2) << p;

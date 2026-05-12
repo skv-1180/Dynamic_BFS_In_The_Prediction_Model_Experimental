@@ -70,9 +70,11 @@ QueryResult DecrementalBFS::processUpdateTrivial(int step, const EdgeUpdate& rea
         E_del.push_back(m_realHistory[k-1]);
     }
 
+    timer.pause();
     std::vector<int>level = m_snapshots[m_lastMatched].level;
     std::vector<int>parent = m_snapshots[m_lastMatched].parent;
     std::vector<std::unordered_set<int>> UP = m_snapshots[m_lastMatched].upperParents;
+    timer.play();
 
     batchDeleteEdge(E_del, level, parent, UP);
     rollback(E_del);

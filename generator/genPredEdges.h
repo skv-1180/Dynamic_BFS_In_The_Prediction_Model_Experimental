@@ -2,7 +2,15 @@
 #include <bits/stdc++.h>
 using namespace std;
 
+
 using Update = tuple<int, int, int>;  // (u, v, type) : 0 insert, 1 delete
+std::ostream& operator<<(std::ostream& out,  const Update& up){
+    const auto& [u, v, t] = up;
+    out << "[" << u << ' ' << v << ' ' << t << "]";
+    return out;
+}
+
+#include<bits/debugger.h>
 
 // Basic helpers
 
@@ -171,6 +179,18 @@ static void applyUpdate(EdgeSet& S, const Update& up) {
     }
 }
 
+static void applyUpdate(set<Edge>& S, const Update& up) {
+    auto [u, v, type] = up;
+    Edge e{u, v};
+
+    if (type == 0) {
+        S.insert(e);
+    } else {
+        auto it = S.find(e);
+        if (it != S.end()) S.erase(it);
+    }
+}
+
 // Build arr[0..m-1]
 // arr[i] = 1 means state match after update i
 // We force arr[m-1] = 1
@@ -250,6 +270,54 @@ vector<Update> makeOneInterleavingPreservePerEdgeOrder(
     return out;
 }
 
+
+// vector<Update> makeOneInterleavingPreservePerEdgeOrder(
+//     const vector<Update>& realBlock,
+//     mt19937& rng
+// ) {
+//     int len = realBlock.size();
+//     if (len <= 1) return realBlock;
+
+//     map<Edge, queue<Update>> updatesByEdge;
+//     vector<Edge> edges;
+//     set<Edge> seen;
+
+//     for (const auto& up : realBlock) {
+//         Edge e = toEdge(up);
+
+//         if (!seen.count(e)) {
+//             seen.insert(e);
+//             edges.push_back(e);
+//         }
+
+//         updatesByEdge[e].push(up);
+//     }
+
+//     vector<Update> out;
+//     out.reserve(len);
+
+//     while ((int)out.size() < len) {
+//         vector<Edge> available;
+
+//         for (const auto& e : edges) {
+//             if (!updatesByEdge[e].empty()) {
+//                 available.push_back(e);
+//             }
+//         }
+
+//         uniform_int_distribution<int> dist(0, (int)available.size() - 1);
+//         Edge chosen = available[dist(rng)];
+
+//         out.push_back(updatesByEdge[chosen].front());
+//         updatesByEdge[chosen].pop();
+//     }
+
+//     debug(realBlock)
+//     debug(out)
+
+//     return out;
+// }
+
 // Count how many internal steps are mismatched if we use predBlock
 // against realBlock, starting from the same startState.
 // We do NOT count the last position, since the block endpoint must match.
@@ -289,16 +357,8 @@ vector<Update> buildPredictedBlock(
     vector<Update> best = realBlock;
     int bestScore = -1;
 
-    for (int t = 0; t < trials; ++t) {
-        vector<Update> cand = makeOneInterleavingPreservePerEdgeOrder(realBlock, rng);
-        // int score = countInternalMismatches(startState, realBlock, cand);
-
-        // if (score > bestScore) {
-        //     bestScore = score;
-        //     best = std::move(cand);
-        // }
-        best = std::move(cand);
-    }
+    vector<Update> cand = makeOneInterleavingPreservePerEdgeOrder(realBlock, rng);
+    best = std::move(cand);
 
     return best;
 }
@@ -321,11 +381,12 @@ void generatePredictedByStateError(
     if (m == 0) return;
 
     vector<int> arr = buildMatchArray(m, error_rate, rng);
+    debug(arr)
 
     // State before current block
     EdgeSet matchedState;
     for (auto [u, v] : instance.initial_edges) matchedState.insert({u, v});
-
+    
     int lastMatchIdx = -1;
 
     for (int i = 0; i < m; ++i) {
@@ -362,9 +423,14 @@ void generatePredictedByStateError(
 }
 
 // Diagnostics
+/*
+using EdgeSet = unordered_set<Edge, EdgeHash>;
+
+*/
 
 double computeAchievedStateErrorRate(const DynamicGraphInstance& instance) {
-    EdgeSet realState, predState;
+    // EdgeSet realState, predState;
+    set<Edge> realState, predState;
     for (auto [u, v] : instance.initial_edges) {
         realState.insert({u, v});
         predState.insert({u, v});
@@ -381,6 +447,8 @@ double computeAchievedStateErrorRate(const DynamicGraphInstance& instance) {
         applyUpdate(predState, instance.predictedUpdates[i]);
         if (realState != predState) mismatchCount++;
     }
+
+    debug(mismatchCount, m)
 
     return (m == 0 ? 0.0 : (double)mismatchCount / m);
 }

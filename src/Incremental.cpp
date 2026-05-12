@@ -69,8 +69,10 @@ QueryResult IncrementalBFS::processUpdateTrivial(int step, const EdgeUpdate& rea
         E_ins.push_back(m_realHistory[k-1]);
     }
 
+    timer.pause();
     std::vector<int>level = m_snapshots[m_lastMatched].level;
     std::vector<int>parent = m_snapshots[m_lastMatched].parent;
+    timer.play();
 
     batchInsertEdge(E_ins, level, parent);
     rollback(E_ins);
