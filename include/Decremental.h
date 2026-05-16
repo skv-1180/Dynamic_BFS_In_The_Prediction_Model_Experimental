@@ -18,7 +18,7 @@ class DecrementalBFS
 
     QueryResult processUpdate(int step, const EdgeUpdate& realUpdate, Timer& timer);
 
-    const BFSSnapshot& snapshotAt(int i) const { return m_snapshots[i]; }
+    BFSSnapshot snapshotAt(int i) const;
     int numSnapshots() const { return (int)m_snapshots.size(); }
     int lastMatchedStep() const { return m_lastMatched; }
     int numVertices() const { return m_n; }
@@ -45,5 +45,7 @@ private:
     int prevIdx{0};  // lastIdxUptoWhichRealUpdatesAreInsertedInRunningGraph
     vector<unordered_set<int>> prevInList; 
     vector<unordered_set<int>> prevOutList; 
+    int currEdgeCnt{0};
 
+    EdgeList m_initialEdges; 
 };

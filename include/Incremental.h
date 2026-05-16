@@ -17,12 +17,14 @@ class IncrementalBFS
     IncrementalBFS(int numVertices, int source,
                    const EdgeList& initialEdges,
                    const EdgeList& predictedUpdates, 
-                   ErrorCorrectionMode errorCorrMode = {ErrorCorrectionMode::TRIVIAL});
+                   ErrorCorrectionMode errorCorrMode = {ErrorCorrectionMode::TRIVIAL},
+                   bool useBatch = true
+                );
 
 
     QueryResult processUpdate(int step, const EdgeUpdate& realUpdate, Timer& timer);
     
-    const BFSSnapshot& snapshotAt(int i) const { return m_snapshots[i]; }
+    BFSSnapshot snapshotAt(int i) const;
     int numSnapshots() const { return (int)m_snapshots.size(); }
     int lastMatchedStep() const { return m_lastMatched; }
     int numVertices() const { return m_n; }
@@ -32,6 +34,7 @@ private:
     void initGraphs(const EdgeList& initialEdges);
     void batchInsertEdge(const EdgeList& batch, vector<int>&level, vector<int>&parent);
     void rollback(const EdgeList& batch);
+    QueryResult processUpdateFromPrev(int step, const EdgeUpdate& realUpdate, Timer& timer);
     QueryResult processUpdateTrivial(int step, const EdgeUpdate& realUpdate, Timer& timer);
     QueryResult processUpdateNonTrivial(int step, const EdgeUpdate& realUpdate, Timer& timer);
 
@@ -48,5 +51,9 @@ private:
     int maxUpdateIdx{0};
     int prevIdx{0};  // lastIdxUptoWhichRealUpdatesAreInsertedInRunningGraph
     vector<unordered_set<int>> prevOutList; 
+
+    EdgeList m_initialEdges; 
+    bool batch_update;
+    BFSState currState; 
 };
 

@@ -16,9 +16,11 @@ void repairLevel(
     std::vector<std::unordered_set<int>>& UP,
     int n,
     const std::vector<std::unordered_set<int>>& prevInList,
-    const std::vector<std::unordered_set<int>>& prevOutList
+    const std::vector<std::unordered_set<int>>& prevOutList,
+    int &cnt
 );
 
+void fallback_BFS(int source, int n, vector<int>&level, vector<int>&parent,  vector<unordered_set<int>>& outAdj);
 
 void repairLevel(BFSState& ws, std::vector<std::set<int>>& LL, int l);
 

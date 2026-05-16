@@ -5,9 +5,12 @@
 DecrementalBFS::DecrementalBFS(int n, int src, const EdgeList& init, const EdgeList& pred, ErrorCorrectionMode errorCorrMode)
     : m_n(n), m_source(src), m_predictedUpdates(pred), m_errorCorrMode(errorCorrMode), prevIdx{0}, prevInList(n + 1), prevOutList(n + 1)
 {
+    currEdgeCnt = init.size();
     initGraphs(init);
     buildPredEdgeIdx(predEdgeIdx, m_predictedUpdates);
+    // m_initialEdges = init;
     m_snapshots = preprocessDecremental(n, src, init, pred);
+
 }
 
 void DecrementalBFS::initGraphs(const EdgeList& initialEdges)
@@ -17,6 +20,24 @@ void DecrementalBFS::initGraphs(const EdgeList& initialEdges)
         prevInList[e.v].insert(e.u);
     }
 }
+
+BFSSnapshot DecrementalBFS::snapshotAt(int idx) const 
+{   
+    return m_snapshots[idx]; 
+    // BFSState state(m_n, m_source);
+    // for (const auto& e : m_initialEdges) {
+    //     state.addEdge(e.u, e.v);
+    // }
+    
+    // for(int i=0;i<idx;i++){
+    //     auto e = m_realHistory[i];
+    //     state.removeEdge(e.u, e.v); // as it is delete only
+    // }
+    // state.computeBFS();
+    // state.computeAllUP();
+    // return state.saveSnapshot(true);
+}
+
 
 QueryResult DecrementalBFS::processUpdate(int step, const EdgeUpdate& realUpdate, Timer& timer){
     if(m_errorCorrMode == ErrorCorrectionMode::TRIVIAL){
@@ -30,6 +51,11 @@ QueryResult DecrementalBFS::processUpdateTrivial(int step, const EdgeUpdate& rea
 {
     timer.play();
     m_realHistory.push_back(realUpdate);
+    if(realUpdate.type == UpdateType::DELETE){
+        --currEdgeCnt;
+    }else{
+        ++currEdgeCnt;
+    }
 
     // Doing Trivial Error correction for now
     if (predEdgeIdx.count(realUpdate))
@@ -48,7 +74,7 @@ QueryResult DecrementalBFS::processUpdateTrivial(int step, const EdgeUpdate& rea
     {
         // Below part will not be calculate in time
         m_lastMatched = maxUpdateIdx;
-        const auto& snap = m_snapshots[m_lastMatched];
+        const auto& snap = snapshotAt(m_lastMatched);
         result.level = snap.level;
         result.parent = snap.parent;
         result.usedPrediction = true;
@@ -71,9 +97,10 @@ QueryResult DecrementalBFS::processUpdateTrivial(int step, const EdgeUpdate& rea
     }
 
     timer.pause();
-    std::vector<int>level = m_snapshots[m_lastMatched].level;
-    std::vector<int>parent = m_snapshots[m_lastMatched].parent;
-    std::vector<std::unordered_set<int>> UP = m_snapshots[m_lastMatched].upperParents;
+    const auto& snap = snapshotAt(m_lastMatched);
+    std::vector<int>level = snap.level;
+    std::vector<int>parent = snap.parent;
+    std::vector<std::unordered_set<int>> UP = snap.upperParents;
     timer.play();
 
     batchDeleteEdge(E_del, level, parent, UP);
@@ -93,6 +120,11 @@ QueryResult DecrementalBFS::processUpdateNonTrivial(int step, const EdgeUpdate& 
 {
     timer.play();
     m_realHistory.push_back(realUpdate);
+    if(realUpdate.type == UpdateType::DELETE){
+        --currEdgeCnt;
+    }else{
+        ++currEdgeCnt;
+    }
 
     // Doing Trivial Error correction for now
     if (predEdgeIdx.count(realUpdate))
@@ -111,7 +143,7 @@ QueryResult DecrementalBFS::processUpdateNonTrivial(int step, const EdgeUpdate& 
     {
         // Below part will not be calculate in time
         m_lastMatched = maxUpdateIdx;
-        const auto& snap = m_snapshots[m_lastMatched];
+        const auto& snap = snapshotAt(m_lastMatched);
         result.level = snap.level;
         result.parent = snap.parent;
         result.usedPrediction = true;
@@ -154,10 +186,12 @@ QueryResult DecrementalBFS::processUpdateNonTrivial(int step, const EdgeUpdate& 
         E_del.push_back(it);
     }
 
-    std::vector<int>level = m_snapshots[nonTrivialLastMatch].level;
-    std::vector<int>parent = m_snapshots[nonTrivialLastMatch].parent;
-    // can optimize this
-    std::vector<std::unordered_set<int>> UP = m_snapshots[nonTrivialLastMatch].upperParents;
+    timer.pause();
+    const auto& snap = snapshotAt(nonTrivialLastMatch);
+    std::vector<int>level = snap.level;
+    std::vector<int>parent = snap.parent;
+    std::vector<std::unordered_set<int>> UP = snap.upperParents;
+    timer.play();
 
     batchDeleteEdge(E_del, level, parent, UP);
     rollback(E_del);
@@ -201,10 +235,19 @@ void DecrementalBFS::batchDeleteEdge(const EdgeList& batch, vector<int>&level, v
         }
     }
 
+    int cnt = 0;
+
     for (int l = lStar; l <= n; ++l)
     {
-        repairLevel(LL, l, level, parent, UP, n, prevInList, prevOutList);
+        repairLevel(LL, l, level, parent, UP, n, prevInList, prevOutList, cnt);
         LL[l].clear();
+        if(cnt > (currEdgeCnt/2)){
+            cnt = -1;
+            break;
+        }
+    }
+    if(cnt == -1){
+        fallback_BFS(m_source, m_n, level, parent, prevOutList);
     }
 }
 

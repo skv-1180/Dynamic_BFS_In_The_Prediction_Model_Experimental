@@ -86,10 +86,13 @@ void repairLevel(
     std::vector<std::unordered_set<int>>& UP,
     int n,
     const std::vector<std::unordered_set<int>>& prevInList,
-    const std::vector<std::unordered_set<int>>& prevOutList
+    const std::vector<std::unordered_set<int>>& prevOutList,
+    int& cnt 
 ){
     for (int x: LL[l])
     {
+        cnt += prevInList[x].size() + prevOutList[x].size();
+
         if (!UP[x].empty())
         {
             parent[x] = *UP[x].begin();
@@ -152,6 +155,29 @@ void repairLevel(
         }
     }
 }
+
+void fallback_BFS(int source, int n, vector<int>&level, vector<int>&parent,  vector<unordered_set<int>>& outAdj){
+    //reset level and parent
+    std::fill(level.begin(),  level.end(),  INF_LEVEL);
+    std::fill(parent.begin(), parent.end(), NO_PARENT);
+
+    level[source] = 0;
+    std::queue<int> q;
+    q.push(source);
+
+    while (!q.empty()) {
+        int u = q.front(); 
+        q.pop();
+        for (int v : outAdj[u]) {
+            if (level[v] == INF_LEVEL) {
+                level[v]  = level[u] + 1;
+                parent[v] = u;
+                q.push(v);
+            }
+        }
+    }
+}
+
 
 
 // ------------------------------------------------
@@ -228,4 +254,5 @@ void repairLevel(BFSState& ws,
         }
     }
 }
+
 

@@ -11,6 +11,11 @@ sfdt/
 venv-win/
 generator/inp.t
 generator/out.t
+generator/incdec
+generator/fdTest
 generator/checkEta.cpp
+generator/konnect/
+out.txt
+
 
 

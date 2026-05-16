@@ -1,31 +1,143 @@
 #include "../include/Incremental.h"
-
 #include "../include/Preprocess.h"
 #include "../include/utils.h"
+#include "../include/Config.h"
 
-IncrementalBFS::IncrementalBFS(int n, int src, const EdgeList& init, const EdgeList& pred, ErrorCorrectionMode errorCorrMode)
-    : m_n(n), m_source(src), m_predictedUpdates(pred),  m_errorCorrMode(errorCorrMode), prevIdx(0), prevOutList(n + 1)
+static void singleInsert(BFSState& s, int x, int y)
+{
+    s.addEdge(x, y);
+    if (s.level[x] == INF_LEVEL) return;
+    if (s.level[y] <= s.level[x] + 1) return;
+
+    int n = s.n;
+    s.parent[y] = x;
+    s.level[y] = s.level[x] + 1;
+
+    std::vector<std::vector<int>> L(n + 2);
+    L[s.level[y]].push_back(y);
+
+    for (int i = s.level[y]; i <= n; ++i)
+    {
+        if (L[i].empty()) break;
+        for (int a : L[i])
+        {
+            for (int v : s.outAdj[a])
+            {  // N(a) = out-neighbours of a
+                if (s.level[v] > s.level[a] + 1)
+                {
+                    s.parent[v] = a;
+                    s.level[v] = s.level[a] + 1;
+                    L[s.level[v]].push_back(v);
+                }
+            }
+        }
+    }
+}
+
+
+IncrementalBFS::IncrementalBFS(int n, int src, const EdgeList& init, const EdgeList& pred, ErrorCorrectionMode errorCorrMode, bool useBatch)
+    : m_n(n), m_source(src), m_predictedUpdates(pred),  m_errorCorrMode(errorCorrMode), prevIdx(0), prevOutList(n + 1), batch_update{useBatch}, currState{n, src, AlgorithmMode::INCREMENTAL}
 {
     initGraphs(init);
     buildPredEdgeIdx(predEdgeIdx, m_predictedUpdates);
+    // m_initialEdges = init;
     m_snapshots = preprocessIncremental(n, src, init, pred);
+
 }
 
 void IncrementalBFS::initGraphs(const EdgeList& initialEdges)
 {
+    
+    if(!batch_update) {
+        for (const auto& e : initialEdges){
+            currState.addEdge(e.u, e.v);
+        }
+        // return;
+    }
+
     for (const auto& e : initialEdges)
     {
         prevOutList[e.u].insert(e.v);
     }
+
+}
+ 
+BFSSnapshot IncrementalBFS::snapshotAt(int idx) const 
+{ 
+    return m_snapshots[idx]; 
+    // BFSState state(m_n, m_source);
+    // for (const auto& e : m_initialEdges) {
+    //     state.addEdge(e.u, e.v);
+    // }
+    
+    // for(int i=0;i<idx;i++){
+    //     auto e = m_realHistory[i];
+    //     state.addEdge(e.u, e.v); // as it is delete only
+    // }
+    // state.computeBFS();
+    // return state.saveSnapshot(false);
 }
 
-QueryResult IncrementalBFS::processUpdate(int step, const EdgeUpdate& realUpdate, Timer& timer){
+
+QueryResult IncrementalBFS::processUpdate(int step, const EdgeUpdate& realUpdate, Timer& timer)
+{
+    if(!batch_update){
+        return processUpdateFromPrev(step, realUpdate, timer);
+    }
+
     if(m_errorCorrMode == ErrorCorrectionMode::TRIVIAL){
         return processUpdateTrivial(step, realUpdate, timer);
     }else{
         return processUpdateNonTrivial(step, realUpdate, timer);
     }
 }
+
+// verify 0- indexing for m_realHistory and m_predictedUpdates
+QueryResult IncrementalBFS::processUpdateFromPrev(int step, const EdgeUpdate& realUpdate, Timer& timer)
+{
+    // timer.play();
+    
+    if (predEdgeIdx.count(realUpdate))
+    {
+        maxUpdateIdx = max(maxUpdateIdx, predEdgeIdx[realUpdate]);
+    }
+    else
+    {
+        maxUpdateIdx = -1;  // Not found
+    }
+    // timer.pause();
+
+
+    QueryResult result; // should not be included in time
+    result.step = step;
+    if (maxUpdateIdx == step) // Case 1: sequence match
+    {
+        const auto& snap = snapshotAt(step);
+        currState.addEdge(realUpdate.u, realUpdate.v);
+        currState.level = snap.level;
+        currState.parent = snap.parent;
+        // Below part will not be calculate in time
+        m_lastMatched = maxUpdateIdx;
+        result.level = currState.level;
+        result.parent = currState.parent;
+        result.usedPrediction = true;
+        result.lastMatchedStep = m_lastMatched;
+        return result;
+    }
+
+
+    timer.play();
+    singleInsert(currState, realUpdate.u, realUpdate.v);
+    timer.pause();
+
+    // Below part will not be calculate in time
+    result.level = currState.level;
+    result.parent = currState.parent;
+    result.usedPrediction = false;
+    result.lastMatchedStep = m_lastMatched;
+    return result;
+}
+
 // verify 0- indexing for m_realHistory and m_predictedUpdates
 QueryResult IncrementalBFS::processUpdateTrivial(int step, const EdgeUpdate& realUpdate, Timer& timer)
 {
@@ -49,7 +161,7 @@ QueryResult IncrementalBFS::processUpdateTrivial(int step, const EdgeUpdate& rea
     {
         // Below part will not be calculate in time
         m_lastMatched = maxUpdateIdx;
-        const auto& snap = m_snapshots[m_lastMatched];
+        const auto& snap = snapshotAt(m_lastMatched);
         result.level = snap.level;
         result.parent = snap.parent;
         result.usedPrediction = true;
@@ -70,8 +182,9 @@ QueryResult IncrementalBFS::processUpdateTrivial(int step, const EdgeUpdate& rea
     }
 
     timer.pause();
-    std::vector<int>level = m_snapshots[m_lastMatched].level;
-    std::vector<int>parent = m_snapshots[m_lastMatched].parent;
+    const auto& snap = snapshotAt(m_lastMatched);
+    std::vector<int>level = snap.level;
+    std::vector<int>parent = snap.parent;
     timer.play();
 
     batchInsertEdge(E_ins, level, parent);
@@ -110,7 +223,7 @@ QueryResult IncrementalBFS::processUpdateNonTrivial(int step, const EdgeUpdate& 
     {
         // Below part will not be calculate in time
         m_lastMatched = maxUpdateIdx;
-        const auto& snap = m_snapshots[m_lastMatched];
+        const auto& snap = snapshotAt(m_lastMatched);
         result.level = snap.level;
         result.parent = snap.parent;
         result.usedPrediction = true;
@@ -151,8 +264,11 @@ QueryResult IncrementalBFS::processUpdateNonTrivial(int step, const EdgeUpdate& 
         E_ins.push_back(it);
     }
 
-    std::vector<int>level = m_snapshots[nonTrivialLastMatch].level;
-    std::vector<int>parent = m_snapshots[nonTrivialLastMatch].parent;
+    timer.pause();
+    const auto& snap = snapshotAt(nonTrivialLastMatch);
+    std::vector<int>level = snap.level;
+    std::vector<int>parent = snap.parent;
+    timer.play();
 
     batchInsertEdge(E_ins, level, parent);
     rollback(E_ins);
@@ -166,8 +282,6 @@ QueryResult IncrementalBFS::processUpdateNonTrivial(int step, const EdgeUpdate& 
     result.lastMatchedStep = nonTrivialLastMatch;
     return result;
 }
-
-
 
 void IncrementalBFS::batchInsertEdge(const EdgeList& batch, vector<int>&level, vector<int>&parent){
     int n = m_n;

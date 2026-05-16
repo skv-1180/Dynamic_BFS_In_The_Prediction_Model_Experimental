@@ -207,7 +207,7 @@ AlgoTiming timeClassicalDecremental(
     return best;
 }
 
-AlgoTiming timeClassicalFullyDynamic(
+AlgoTiming timeClassicalFullyDynamic2(
     const BFSState& initialState,
     const EdgeList& updates,
     int n_runs)
@@ -260,7 +260,7 @@ AlgoTiming timeClassicalFullyDynamic(
     return best;
 }
 
-AlgoTiming timeNaiveFullyDynamic(
+AlgoTiming timeClassicalFullyDynamic(
     const BFSState& initialState,
     const EdgeList& updates,
     int n_runs)

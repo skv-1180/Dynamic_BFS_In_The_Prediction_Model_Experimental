@@ -1,5 +1,5 @@
 CXX      = g++
-CXXFLAGS = -std=c++20 -O2 -Wall
+CXXFLAGS = -std=c++20 -O2 
 DBGFLAGS = -std=c++20 -O0 -g -fsanitize=address,undefined -Wall
 
 PTH   = .

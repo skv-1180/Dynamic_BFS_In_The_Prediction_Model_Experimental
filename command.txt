@@ -9,13 +9,16 @@ bin/app --mode decremental --store space --checkpoint-k 5 data/example_decrement
 
 # Fully dynamic with non-trivial error correction
 bin/app --mode fullydynamic --ec nontrivial data/example_fullydynamic.txt
+bin/app --mode fullydynamic --quiet generator/testcases/predReal/3/graph_mode_fullydynamic_err0.50_graph_subset_n10000_m20000_mode_2_.txt 
 
 # Fallback remaining  - need to count the operation - too complex
 
  bin/app --mode fullydynamic --verify --quiet testcases/erdosRenyi/withPredictedEdges/pred_50_n100_m0_215_m_100_mode_2.txt 
  bin/app --mode decremental --verify --quiet testcases/erdosRenyi/withPredictedEdges/pred_50_n100_m0_215_m_100_mode_1.txt 
  
-./bin/benchmark --mode decremental --runs 5 --verify --csv-time time.csv --csv-eta eta.csv data/benchmark/testcases/graph_synthetic_mode_decremental_strategy_prefix_err0.50_case00_m200.txt 
+./bin/benchmark --mode fullydynamic --runs 1 --csv-time time2.csv --csv-eta eta2.csv  generator/testcases/predReal/dense7/graph_mode_fullydynamic_err0.50_graph_subset_n1000_m30000_mode_2_.txt
+ bin/app --mode fullydynamic --quiet generator/testcases/predReal/dense6/graph_mode_fullydynamic_err0.50_graph_subset_n1000_m30000_mode_2_.t
+xt
 
 # python -----------------------------------------------------------------
 deactivate 2>/dev/null
@@ -49,36 +52,38 @@ python3 tools/benchmark_runner.py \
   --ec-modes on
 
 python3 tools/plot_results.py \
-  --time-csv results/time_vs_error.csv \
-  --eta-csv results/eta_scatter.csv \
-  --output-dir results/plots 
+  --split-ec \
+  --output-dir results/plots \
+  --time-csv results/time_vs_error.csv
+  
+ # --eta-csv results/eta_scatter.csv \
 
-python3 tools/benchmark_runner.py \
+time python3 tools/benchmark_runner.py \
   --binary bin/benchmark \
-  --test-dir data/benchmark/testcasesReal \
-  --csv-time results/time_vs_error.csv \
   --csv-eta results/eta_scatter.csv \
   --modes incremental decremental fullydynamic \
   --runs 1 \
-  --ec-modes off on
+  --ec-modes off \
+  --timeout 1000 \
+  --test-dir generator/fdTest/predReal/new500_1 \
+  --csv-time results/time_vs_error_new500_1.csv \
+  --parallel 16 \
+  2> error.txt
+
+#inc dec
+time python3 tools/benchmark_runner.py \
+  --binary bin/benchmark \
+  --csv-eta results/eta_scatter.csv \
+  --modes incremental decremental fullydynamic \
+  --runs 1 \
+  --ec-modes off \
+  --timeout 6000 \
+  --test-dir generator/incdec/predReal/set4 \
+  --csv-time results/time_vs_error_set4.csv \
+  --parallel 1 \
+  2> error.txt
 
 
-# -----------------------------------------------------------------
-Results 
-bin/app --mode incremental --verify --quiet data/benchmark/testcases/graph_synthetic_mode_incremental_strategy_prefix_err1.00_case00_m200.txt 
-Wall time     : 11.614 ms
-
-bin/app --quiet data/benchmark/testcases/graph_synthetic_mode_decremental_strategy_prefix_err1.00_case00_m200.txt --verify --mode decremental
-Wall time     : 30.730 ms
-
-bin/app --quiet data/benchmark/testcases/graph_synthetic_mode_fullydynamic_strategy_prefix_err1.00_case00_m200.txt --mode fullydynamic
-Wall time     : 26.607 ms
-
-bin/app --quiet data/benchmark/testcasesReal/_mode_fullydynamic_1.00_graph_subset_n5000_m6000_mode_2_.txt
-Wall time     : 4601.289 ms
-
-> bin/app --quiet data/benchmark/testcasesReal/_mode_fullydynamic_0.50_graph_subset_n5000_m6000_mode_2_.txt 
-Wall time     : 2983.517 ms
 
 -----------------------
 mingw32-make -f Makefile.win
@@ -106,7 +111,7 @@ python tools/plot_results.py `
 
 python tools/benchmark_runner.py `
   --binary .\bin\benchmark.exe `
-  --test-dir data\benchmark\testcasesReal `
+  --test-dir data\benchmark\testcasesReal `generator/incdec/predReal/set19
   --csv-time results\time_vs_error.csv `
   --csv-eta results\eta_scatter.csv `
   --modes incremental decremental fullydynamic `
@@ -121,3 +126,4 @@ python tools/benchmark_runner.py `
   --modes incremental decremental fullydynamic `
   --runs 5 `
   --ec-modes off on
+  --timeout 600

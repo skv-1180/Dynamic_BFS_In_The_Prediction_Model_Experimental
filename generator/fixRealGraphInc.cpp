@@ -1,24 +1,16 @@
-#include <algorithm>
-#include <cctype>
-#include <fstream>
-#include <iostream>
-#include <sstream>
-#include <string>
-#include <unordered_set>
-#include <utility>
-#include <vector>
-#include "fixRealGraph.h"
-// struct Update {
-//     int u, v, type; // 0 = insert, 1 = delete
-// };
+#include <bits/stdc++.h>
+using namespace std;
+struct Update {
+    int u, v, type; // 0 = insert, 1 = delete
+};
 
-// struct Edge {
-//     int u, v;
+struct Edge {
+    int u, v;
 
-//     bool operator==(const Edge& other) const {
-//         return u == other.u && v == other.v;
-//     }
-// };
+    bool operator==(const Edge& other) const {
+        return u == other.u && v == other.v;
+    }
+};
 
 struct EdgeHash {
     std::size_t operator()(const Edge& e) const {
@@ -55,23 +47,15 @@ std::vector<Update> readAndSanitizeKonekt(const std::string& inputFile) {
 
         std::istringstream iss(line);
         int u, v;
-        std::string sign;
 
-        if (!(iss >> u >> v >> sign)) continue;
+        if (!(iss >> u >> v)) continue;
         if (u <= 0 || v <= 0) continue;
 
         Edge e{u, v};
 
-        if (sign == "+1") {
-            if (alive_edges.find(e) != alive_edges.end()) continue;
-            alive_edges.insert(e);
-            updates.push_back({u, v, 0});
-        } else if (sign == "-1") {
-            auto it = alive_edges.find(e);
-            if (it == alive_edges.end()) continue;
-            alive_edges.erase(it);
-            updates.push_back({u, v, 1});
-        }
+        if (alive_edges.find(e) != alive_edges.end()) continue;
+        alive_edges.insert(e);
+        updates.push_back({u, v});
     }
 
     return updates;
@@ -99,19 +83,73 @@ std::vector<Update> buildSubsetGraph(
 
         Edge e{up.u, up.v};
 
-        if (up.type == 0) { // insert
-            if (alive_edges.find(e) != alive_edges.end()) continue;
-            alive_edges.insert(e);
-            subset.push_back(up);
-        } else { // delete
-            auto it = alive_edges.find(e);
-            if (it == alive_edges.end()) continue;
-            alive_edges.erase(it);
-            subset.push_back(up);
+        if (alive_edges.find(e) != alive_edges.end()) continue;
+        alive_edges.insert(e);
+        subset.push_back(up);
+
+        if ((int)subset.size() >= (target_m)) break;
+    }
+    // assert(target_m <= (target_n*(target_n+1)/2));
+
+    std::random_device rd;
+    std::mt19937 gen(rd());
+    std::uniform_int_distribution<int> dist(1, target_n);
+
+  
+    while ((int)subset.size() < target_m) {
+        int u = dist(gen);
+        int v = dist(gen);
+
+        Edge e{u, v};
+
+        if(u == v) continue;
+        if (alive_edges.find(e) != alive_edges.end()) {
+            continue;
         }
 
-        if ((int)subset.size() >= target_m) break;
+        alive_edges.insert(e);
+
+        subset.push_back(Update{
+            u,
+            v
+        });
     }
+/*
+std::vector<Edge> candidates;
+candidates.reserve(target_n * (target_n - 1));
+
+for (int u = 1; u <= target_n; ++u) {
+    for (int v = 1; v <= target_n; ++v) {
+        if (u == v) continue;
+
+        Edge e{u, v};
+
+        if (alive_edges.find(e) == alive_edges.end()) {
+            candidates.push_back(e);
+        }
+    }
+}
+
+std::random_device rd;
+std::mt19937 gen(rd());
+
+std::shuffle(candidates.begin(), candidates.end(), gen);
+
+size_t need = target_m - subset.size();
+
+assert(need <= candidates.size());
+
+for (size_t i = 0; i < need; ++i) {
+    const Edge& e = candidates[i];
+
+    alive_edges.insert(e);
+
+    subset.push_back(Update{
+        e.u,
+        e.v
+    });
+}
+    */
 
     return subset;
 }
@@ -122,16 +160,32 @@ std::vector<Update> buildSubsetGraph(
 void writeFormattedGraph(
     const std::string& outputFile,
     int n,
-    const std::vector<Update>& updates)
+    const std::vector<Update>& updates, int mode)
 {
     std::ofstream fout(outputFile);
     if (!fout) {
         throw std::runtime_error("Cannot open output file: " + outputFile);
     }
 
-    fout << n << " " << 0 << " " << updates.size() << "\n";
-    for (const auto& up : updates) {
-        fout << up.u << " " << up.v << " " << up.type << "\n";
+    int m = updates.size() ;
+    if(mode == 0){
+        fout << n << " " << 0 << " " << m << "\n";
+        for (const auto& up : updates) {
+            fout << up.u << " " << up.v << " " << 0 << "\n";
+        }
+    }else{
+        int m0 = (m+1)/2;
+        int m1 = m - m0;
+        fout << n << " " << m0 << " " << m1 << "\n";
+        for(int i=0;i<m0;i++){
+            auto up = updates[i];
+            fout << up.u << " " << up.v << "\n";
+        }
+
+        for(int i=m1-1;i>=0;i--){
+            auto up = updates[i];
+            fout << up.u << " " << up.v << " " << 1 << "\n";
+        }
     }
 }
 
@@ -149,14 +203,19 @@ void generateMultipleGraphs(
     for (const auto& [n, m] : specs) {
         std::vector<Update> subset = buildSubsetGraph(fullUpdates, n, m);
         
-        generateMoreEdge(subset, n, m);
-        std::string outputFile =
-            outputPrefix + "_n" + std::to_string(n) +
-            "_m" + std::to_string(subset.size()) + "_mode_2_.txt";
+        std::string outputFile1 = outputPrefix + "_n" + std::to_string(n) +
+            "_m" + std::to_string(subset.size()) + "_mode_0_.txt";
+        std::string outputFile2 = outputPrefix + "_n" + std::to_string(n) +
+            "_m" + std::to_string(subset.size()) + "_mode_1_.txt";
 
-        writeFormattedGraph(outputFile, n, subset);
+        writeFormattedGraph(outputFile1, n, subset, 0);
+        writeFormattedGraph(outputFile2, n, subset, 1);
 
-        std::cout << "Generated: " << outputFile
+        std::cout << "Generated: " << outputFile1
+                  << "  with " << subset.size()
+                  << " updates\n";
+
+        std::cout << "Generated: " << outputFile2
                   << "  with " << subset.size()
                   << " updates\n";
     }
@@ -167,7 +226,7 @@ void generateMultipleGraphs(
 // ------------------------------------------------------------
 int main() {
     try {
-        std::string inputFile = "fdTest/konnect/raw.txt";
+        std::string inputFile = "incdec/konnect/rawInc.txt";
 
         std::vector<std::pair<int, int>> specs = {
             // {1000,1000000},
@@ -176,13 +235,16 @@ int main() {
             // {500,200000},
             // {1000,100000},
             // {500,100000},
-            {500,10000},
             // {300, 90000},
 
             // {1000,30000},
             // {1000,50000},
-            // {1000,100000},
-            // {10000, 10000},
+            {1000,100000},
+            
+            // {5000, 50000},
+            // {5000, 100000},
+            // {10000, 100000},
+            // {10000, 200000},
             // {10000, 20000},
             // {10000, 30000},
             // {10000, 40000},

@@ -70,27 +70,27 @@ int main(int argc, char** argv)
 
     if (mode == AlgorithmMode::INCREMENTAL)
     {
-        IncrementalBFS algo(n, src, init, pred, errorCorrMode);
-        rm = collectMetricsAndEtaRows(algo, init, real, n, test_case, graph_name,
-                                      error_rate, algo_name, eta_rows, args.verify);
+        // IncrementalBFS algo(n, src, init, pred, errorCorrMode);
+        // rm = collectMetricsAndEtaRows(algo, init, real, n, test_case, graph_name,
+                                    //   error_rate, algo_name, eta_rows, args.verify);
 
         online = timePredictedOnline<IncrementalBFS>(
             n, src, init, pred, real, args.runs, errorCorrMode);
     }
     else if (mode == AlgorithmMode::DECREMENTAL)
     {
-        DecrementalBFS algo(n, src, init, pred, errorCorrMode);
-        rm = collectMetricsAndEtaRows(algo, init, real, n, test_case, graph_name,
-                                      error_rate, algo_name, eta_rows, args.verify);
+        // DecrementalBFS algo(n, src, init, pred, errorCorrMode);
+        // rm = collectMetricsAndEtaRows(algo, init, real, n, test_case, graph_name,
+        //                               error_rate, algo_name, eta_rows, args.verify);
 
         online = timePredictedOnline<DecrementalBFS>(
             n, src, init, pred, real, args.runs, errorCorrMode);
     }
     else
     {
-        FullyDynamicBFS algo(n, src, init, pred, errorCorrMode);
-        rm = collectMetricsAndEtaRows(algo, init, real, n, test_case, graph_name,
-                                      error_rate, algo_name, eta_rows, args.verify);
+        // FullyDynamicBFS algo(n, src, init, pred, errorCorrMode);
+        // rm = collectMetricsAndEtaRows(algo, init, real, n, test_case, graph_name,
+        //                               error_rate, algo_name, eta_rows, args.verify);
 
         online = timePredictedOnline<FullyDynamicBFS>(
             n, src, init, pred, real, args.runs, errorCorrMode);
@@ -99,7 +99,7 @@ int main(int argc, char** argv)
     classical = timeClassical(mode, init_state, real, args.runs);
 
     ensureCSVHeader(args.csv_time, timeCSVHeader());
-    ensureCSVHeader(args.csv_eta, etaCSVHeader());
+    // ensureCSVHeader(args.csv_eta, etaCSVHeader());
 
     {
         std::ofstream out(args.csv_time, std::ios::app);
@@ -125,14 +125,14 @@ int main(int argc, char** argv)
     }
 
     {
-        std::ofstream out(args.csv_eta, std::ios::app);
-        if (!out)
-        {
-            std::cerr << "Cannot open " << args.csv_eta << "\n";
-            return 1;
-        }
+        // std::ofstream out(args.csv_eta, std::ios::app);
+        // if (!out)
+        // {
+        //     std::cerr << "Cannot open " << args.csv_eta << "\n";
+        //     return 1;
+        // }
 
-        appendEtaRows(out, eta_rows, ec_label);
+        // appendEtaRows(out, eta_rows, ec_label);
     }
 
     const double speedup =

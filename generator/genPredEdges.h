@@ -10,7 +10,7 @@ std::ostream& operator<<(std::ostream& out,  const Update& up){
     return out;
 }
 
-#include<bits/debugger.h>
+#include "debugger.h"
 
 // Basic helpers
 
@@ -271,53 +271,6 @@ vector<Update> makeOneInterleavingPreservePerEdgeOrder(
 }
 
 
-// vector<Update> makeOneInterleavingPreservePerEdgeOrder(
-//     const vector<Update>& realBlock,
-//     mt19937& rng
-// ) {
-//     int len = realBlock.size();
-//     if (len <= 1) return realBlock;
-
-//     map<Edge, queue<Update>> updatesByEdge;
-//     vector<Edge> edges;
-//     set<Edge> seen;
-
-//     for (const auto& up : realBlock) {
-//         Edge e = toEdge(up);
-
-//         if (!seen.count(e)) {
-//             seen.insert(e);
-//             edges.push_back(e);
-//         }
-
-//         updatesByEdge[e].push(up);
-//     }
-
-//     vector<Update> out;
-//     out.reserve(len);
-
-//     while ((int)out.size() < len) {
-//         vector<Edge> available;
-
-//         for (const auto& e : edges) {
-//             if (!updatesByEdge[e].empty()) {
-//                 available.push_back(e);
-//             }
-//         }
-
-//         uniform_int_distribution<int> dist(0, (int)available.size() - 1);
-//         Edge chosen = available[dist(rng)];
-
-//         out.push_back(updatesByEdge[chosen].front());
-//         updatesByEdge[chosen].pop();
-//     }
-
-//     debug(realBlock)
-//     debug(out)
-
-//     return out;
-// }
-
 // Count how many internal steps are mismatched if we use predBlock
 // against realBlock, starting from the same startState.
 // We do NOT count the last position, since the block endpoint must match.
@@ -363,6 +316,71 @@ vector<Update> buildPredictedBlock(
     return best;
 }
 
+// Shuffle updates while preserving order of updates for the same edge.
+// Expected O(m) time.
+// For the same (u, v), the relative order of types is unchanged.
+vector<Update> shuffleUpdatesPreservePerEdgeOrder(
+    const vector<Update>& updates,
+    mt19937& rng)
+{
+    int m = (int)updates.size();
+    if (m <= 1) return updates;
+
+    // For each edge, store its updates in original order.
+    unordered_map<Edge, vector<Update>, EdgeHash> edgeSeq;
+    edgeSeq.reserve(m * 2);
+
+    vector<Edge> edgeOrder;
+    edgeOrder.reserve(m);
+
+    for (const auto& up : updates) {
+        Edge e = toEdge(up);
+
+        auto it = edgeSeq.find(e);
+        if (it == edgeSeq.end()) {
+            edgeSeq.emplace(e, vector<Update>{});
+            edgeOrder.push_back(e);
+        }
+
+        edgeSeq[e].push_back(up);
+    }
+
+    // Pointer for next unused update of each edge.
+    unordered_map<Edge, int, EdgeHash> ptr;
+    ptr.reserve(edgeSeq.size() * 2);
+
+    // Active edges are edges that still have remaining updates.
+    vector<Edge> active;
+    active.reserve(edgeOrder.size());
+
+    for (const Edge& e : edgeOrder) {
+        ptr[e] = 0;
+        active.push_back(e);
+    }
+
+    vector<Update> shuffled;
+    shuffled.reserve(m);
+
+    while (!active.empty()) {
+        uniform_int_distribution<int> dist(0, (int)active.size() - 1);
+        int idx = dist(rng);
+
+        Edge e = active[idx];
+        int p = ptr[e];
+
+        // Consume next update of this edge.
+        shuffled.push_back(edgeSeq[e][p]);
+        ptr[e]++;
+
+        // If this edge is exhausted, remove it from active in O(1).
+        if (ptr[e] == (int)edgeSeq[e].size()) {
+            active[idx] = active.back();
+            active.pop_back();
+        }
+    }
+
+    return shuffled;
+}
 
 void generatePredictedByStateError(
     DynamicGraphInstance& instance,
@@ -380,8 +398,14 @@ void generatePredictedByStateError(
 
     if (m == 0) return;
 
+    if (error_rate == 1.0) {
+        instance.predictedUpdates =
+            shuffleUpdatesPreservePerEdgeOrder(instance.realUpdates, rng);
+        return;
+    }
+
     vector<int> arr = buildMatchArray(m, error_rate, rng);
-    debug(arr)
+    // debug(arr)
 
     // State before current block
     EdgeSet matchedState;
@@ -448,7 +472,7 @@ double computeAchievedStateErrorRate(const DynamicGraphInstance& instance) {
         if (realState != predState) mismatchCount++;
     }
 
-    debug(mismatchCount, m)
+    // debug(mismatchCount, m)
 
     return (m == 0 ? 0.0 : (double)mismatchCount / m);
 }
@@ -481,5 +505,67 @@ void write_instance(const string& out_file, const DynamicGraphInstance& instance
     }
     for (auto [u, v, type] : instance.predictedUpdates) {
         out << u << " " << v << " " << type << "\n";
+    }
+}
+
+// ----------------
+void generatePredictedByPositionError(
+    DynamicGraphInstance& instance,
+    double error_rate,
+    uint32_t seed = 123456789)
+{
+    std::mt19937 rng(seed);
+
+    // Clean real updates first.
+    instance.realUpdates = sanitizeRealUpdates(instance);
+
+    int m = (int)instance.realUpdates.size();
+    instance.predictedUpdates.clear();
+    instance.predictedUpdates.resize(m);
+
+    if (m == 0) return;
+
+    // Clamp error_rate to [0, 1]
+    error_rate = std::max(0.0, std::min(1.0, error_rate));
+
+    int correct_cnt = (int)std::round((1.0 - error_rate) * m);
+
+    // indices = [0, 1, 2, ..., m-1]
+    std::vector<int> indices(m);
+    std::iota(indices.begin(), indices.end(), 0);
+
+    // Randomly choose positions that will remain correct
+    std::shuffle(indices.begin(), indices.end(), rng);
+
+    std::vector<char> fixed(m, false);
+
+    for (int i = 0; i < correct_cnt; ++i) {
+        int idx = indices[i];
+        fixed[idx] = true;
+        instance.predictedUpdates[idx] = instance.realUpdates[idx];
+    }
+
+    // Collect remaining positions and their updates
+    std::vector<int> free_pos;
+    std::vector<Update> free_updates;
+
+    for (int i = 0; i < m; ++i) {
+        if (!fixed[i]) {
+            free_pos.push_back(i);
+            free_updates.push_back(instance.realUpdates[i]);
+        }
+    }
+
+    // Shuffle only the remaining updates
+    std::shuffle(free_updates.begin(), free_updates.end(), rng);
+
+    // Fill shuffled updates into non-fixed positions
+    for (int j = 0; j < (int)free_pos.size(); ++j) {
+        int pos = free_pos[j];
+        instance.predictedUpdates[pos] = free_updates[j];
+    }
+
+    if ((int)instance.predictedUpdates.size() != m) {
+        throw std::runtime_error("Predicted update sequence size mismatch");
     }
 }

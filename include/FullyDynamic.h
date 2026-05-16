@@ -29,7 +29,7 @@ class FullyDynamicBFS
 
     QueryResult processUpdate(int step, const EdgeUpdate& realUpdate, Timer& timer);
 
-    const BFSSnapshot& snapshotAt(int i) const { return m_snapshots[i]; }
+    BFSSnapshot snapshotAt(int i) const;
     int numSnapshots() const { return (int)m_snapshots.size(); }
     int lastMatchedStep() const { return m_lastMatched; }
     int numVertices() const { return m_n; }
@@ -44,9 +44,6 @@ class FullyDynamicBFS
 
     QueryResult processUpdateTrivial(int step, const EdgeUpdate& realUpdate, Timer& timer);
     QueryResult processUpdateNonTrivial(int step, const EdgeUpdate& realUpdate, Timer& timer);
-
-
-    // QueryResult fallbackBFS(int step);
 
     int m_n{};
     int m_source{};
@@ -64,6 +61,9 @@ class FullyDynamicBFS
     vector<unordered_set<int>> prevOutList; 
     UpdateHashOnly predHash;
     UpdateHashOnly realHash;
-
+    int currEdgeCnt{0};
+    
+    // Just to testing purpose to save Ram
+    EdgeList m_initialEdges; 
 };
 

@@ -5,9 +5,11 @@
 FullyDynamicBFS::FullyDynamicBFS(int n, int src, const EdgeList& init, const EdgeList& pred, ErrorCorrectionMode errorCorrMode)
     : m_n(n), m_source(src), m_predictedUpdates(pred),m_errorCorrMode(errorCorrMode), prevIdx{0}, prevInList(n + 1), prevOutList(n + 1)
 {
+    currEdgeCnt = init.size();
     initRealGraph(init);
     buildPredEdgeIdx(predEdgeIdx, m_predictedUpdates);
-    m_snapshots = preprocessFullyDynamic(n, src, init, pred);
+    m_initialEdges = init;
+    // m_snapshots = preprocessFullyDynamic(n, src, init, pred);
 }
 
 void FullyDynamicBFS::initRealGraph(const EdgeList& initialEdges)
@@ -16,6 +18,26 @@ void FullyDynamicBFS::initRealGraph(const EdgeList& initialEdges)
         prevOutList[e.u].insert(e.v);
         prevInList[e.v].insert(e.u);
     }
+}
+
+BFSSnapshot FullyDynamicBFS::snapshotAt(int idx) const { 
+    // return m_snapshots[i]; 
+    BFSState state(m_n, m_source);
+    for (const auto& e : m_initialEdges) {
+        state.addEdge(e.u, e.v);
+    }
+    
+    for(int i=0;i<idx;i++){
+        auto e = m_realHistory[i];
+        if(e.type == UpdateType::DELETE){
+            state.removeEdge(e.u, e.v);
+        }else{
+            state.addEdge(e.u, e.v);
+        }
+    }
+    state.computeBFS();
+    state.computeAllUP();
+    return state.saveSnapshot(true);
 }
 
 void FullyDynamicBFS::rollback(const EdgeList& dels, const EdgeList& ins){
@@ -53,13 +75,26 @@ QueryResult FullyDynamicBFS::processUpdate(int step, const EdgeUpdate& realUpdat
     }
 }
 
+int fall = 0;
+
 QueryResult FullyDynamicBFS::processUpdateTrivial(int step, const EdgeUpdate& realUpdate, Timer& timer)
 {
+    if(step % 10000 == 0){
+        std::cerr << "step: " << step << endl;
+        // std::cerr << "lastMatched: " << m_lastMatched << endl;
+        // std::cerr << "fallback: " << fall << endl;
+    }
+
     timer.play();
     realHash.insert(realUpdate);
     predHash.insert(m_predictedUpdates[step-1]);
 
     m_realHistory.push_back(realUpdate);
+    if(realUpdate.type == UpdateType::DELETE){
+        --currEdgeCnt;
+    }else{
+        ++currEdgeCnt;
+    }
 
     timer.pause();
    
@@ -69,7 +104,8 @@ QueryResult FullyDynamicBFS::processUpdateTrivial(int step, const EdgeUpdate& re
     {
         // Below part will not be calculate in time
         m_lastMatched = step;
-        const auto& snap = m_snapshots[m_lastMatched];
+        // const auto& snap = m_snapshots[m_lastMatched];
+        const auto& snap = snapshotAt(m_lastMatched);
         result.level = snap.level;
         result.parent = snap.parent;
         result.usedPrediction = true;
@@ -103,9 +139,10 @@ QueryResult FullyDynamicBFS::processUpdateTrivial(int step, const EdgeUpdate& re
     removeCommonEdges(E_del, E_ins);
 
     timer.pause();
-    std::vector<int>level = m_snapshots[m_lastMatched].level;
-    std::vector<int>parent = m_snapshots[m_lastMatched].parent;
-    std::vector<std::unordered_set<int>> UP = m_snapshots[m_lastMatched].upperParents;
+    const auto& snap = snapshotAt(m_lastMatched);
+    std::vector<int>level = snap.level;
+    std::vector<int>parent = snap.parent;
+    std::vector<std::unordered_set<int>> UP = snap.upperParents;
     timer.play();
 
     batchDynamicUpdate(E_del, E_ins, level, parent, UP);
@@ -127,6 +164,11 @@ QueryResult FullyDynamicBFS::processUpdateNonTrivial(int step, const EdgeUpdate&
     realHash.insert(realUpdate);
     predHash.insert(m_predictedUpdates[step-1]);
     m_realHistory.push_back(realUpdate);
+    if(realUpdate.type == UpdateType::DELETE){
+        --currEdgeCnt;
+    }else{
+        ++currEdgeCnt;
+    }
 
     timer.pause();
 
@@ -137,7 +179,8 @@ QueryResult FullyDynamicBFS::processUpdateNonTrivial(int step, const EdgeUpdate&
     if (realHash.sameSet(predHash))
     {
         m_lastMatched = step;
-        const auto& snap = m_snapshots[m_lastMatched];
+        // const auto& snap = m_snapshots[m_lastMatched];
+        const auto& snap = snapshotAt(m_lastMatched);
         result.level = snap.level;
         result.parent = snap.parent;
         result.usedPrediction = true;
@@ -259,9 +302,13 @@ QueryResult FullyDynamicBFS::processUpdateNonTrivial(int step, const EdgeUpdate&
     removeCommonEdges(E_del, E_ins);
 
     timer.pause();
-    std::vector<int> level  = m_snapshots[optimalPos].level;
-    std::vector<int> parent = m_snapshots[optimalPos].parent;
-    std::vector<std::unordered_set<int>> UP = m_snapshots[optimalPos].upperParents;
+    // std::vector<int> level  = m_snapshots[optimalPos].level;
+    // std::vector<int> parent = m_snapshots[optimalPos].parent;
+    // std::vector<std::unordered_set<int>> UP = m_snapshots[optimalPos].upperParents;
+    const auto& snap = snapshotAt(optimalPos);
+    std::vector<int>level = snap.level;
+    std::vector<int>parent = snap.parent;
+    std::vector<std::unordered_set<int>> UP = snap.upperParents;
     timer.play();
 
     batchDynamicUpdate(E_del, E_ins, level, parent, UP);
@@ -328,12 +375,23 @@ void FullyDynamicBFS::batchDynamicUpdate(const EdgeList& dels, const EdgeList& i
         }
     }
 
+    int cnt = ins.size() + dels.size();
+
     for (int l = lStar; l <= n; ++l)
     {
-        repairLevel(LL, l, level, parent, UP, n, prevInList, prevOutList);
+        if(cnt > (currEdgeCnt/2)){
+            cnt = -1;
+            break;
+        }
+        repairLevel(LL, l, level, parent, UP, n, prevInList, prevOutList, cnt);
+        if(cnt > (currEdgeCnt/2)){
+            cnt = -1;
+            break;
+        }
 
         for (auto y: LR[l])
         {
+            cnt += prevOutList[y].size();
             for (int z : prevOutList[y])
             {
                 if (LL[l + 1].count(z))
@@ -357,7 +415,17 @@ void FullyDynamicBFS::batchDynamicUpdate(const EdgeList& dels, const EdgeList& i
                 }
             }
         }
+
+        LL[l].clear();
+        LR[l].clear();
+    }
+
+    if(cnt == -1){
+        fallback_BFS(m_source, m_n, level, parent, prevOutList);
+        // ++fall;
     }
 }
+
+
 
 
