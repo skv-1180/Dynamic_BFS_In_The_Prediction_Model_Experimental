@@ -6,7 +6,7 @@ testcases/
 bin/
 venv/
 extra/
-data/
+data_copy/
 sfdt/
 venv-win/
 generator/inp.t
@@ -17,7 +17,6 @@ generator/checkEta.cpp
 generator/konnect/
 out.txt
 old.txt
-
-
+time.csv
 
 
