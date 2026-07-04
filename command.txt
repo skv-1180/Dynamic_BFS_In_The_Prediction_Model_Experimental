@@ -1,11 +1,8 @@
 # Incremental with correctness check
-bin/app --mode incremental --verify --quiet data/example_incremental.txt 
-bin/app --mode incremental --verify --ec --quiet data/example_incremental.txt 
-bin/app --mode decremental --verify --quiet data/example_decremental.txt 
-bin/app --mode fullydynamic --verify data/example_fullydynamic.txt
-
-# Space-optimized decremental, checkpoint every 5 steps (O(mn/5) space)
-bin/app --mode decremental --store space --checkpoint-k 5 data/example_decremental.txt
+bin/app --mode incremental --quiet data/example_incremental.txt 
+bin/app --mode incremental --ec --quiet data/example_incremental.txt 
+bin/app --mode decremental --quiet data/example_decremental.txt 
+bin/app --mode fullydynamic --quiet data/example_fullydynamic.txt
 
 # Fully dynamic with non-trivial error correction
 bin/app --mode fullydynamic --ec nontrivial data/example_fullydynamic.txt
@@ -13,11 +10,13 @@ bin/app --mode fullydynamic --quiet generator/testcases/predReal/3/graph_mode_fu
 
 # Fallback remaining  - need to count the operation - too complex
 
- bin/app --mode fullydynamic --verify --quiet testcases/erdosRenyi/withPredictedEdges/pred_50_n100_m0_215_m_100_mode_2.txt 
- bin/app --mode decremental --verify --quiet testcases/erdosRenyi/withPredictedEdges/pred_50_n100_m0_215_m_100_mode_1.txt 
+bin/app --mode fullydynamic --quiet testcases/erdosRenyi/withPredictedEdges/pred_50_n100_m0_215_m_100_mode_2.txt 
+bin/app --mode decremental --quiet testcases/erdosRenyi/withPredictedEdges/pred_50_n100_m0_215_m_100_mode_1.txt 
  
+
+
+bin/app --mode fullydynamic --quiet generator/testcases/predReal/dense6/graph_mode_fullydynamic_err0.50_graph_subset_n1000_m30000_mode_2_.t
 ./bin/benchmark --mode fullydynamic --runs 1 --csv-time time2.csv --csv-eta eta2.csv  generator/testcases/predReal/dense7/graph_mode_fullydynamic_err0.50_graph_subset_n1000_m30000_mode_2_.txt
- bin/app --mode fullydynamic --quiet generator/testcases/predReal/dense6/graph_mode_fullydynamic_err0.50_graph_subset_n1000_m30000_mode_2_.t
 xt
 
 # python -----------------------------------------------------------------
@@ -84,11 +83,11 @@ time python3 tools/benchmark_runner.py \
   2> error.txt
 
 
-
+  
 -----------------------
 mingw32-make -f Makefile.win
 .\bin\app.exe
-.\bin\app.exe --mode incremental --verify --quiet data/benchmark/testcases/graph_synthetic_mode_incremental_strategy_prefix_err1.00_case00_m200.txt 
+.\bin\app.exe --mode incremental --quiet data/benchmark/testcases/graph_synthetic_mode_incremental_strategy_prefix_err1.00_case00_m200.txt 
 
 mingw32-make -f Makefile.win bench
 .\bin\benchmark.exe

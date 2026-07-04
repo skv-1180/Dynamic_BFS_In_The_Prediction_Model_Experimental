@@ -16,6 +16,8 @@ generator/fdTest
 generator/checkEta.cpp
 generator/konnect/
 out.txt
+old.txt
+
 
 
 
