@@ -45,10 +45,10 @@ bin/app --mode <incremental/decremental/fullydynamic> --quiet --ec <testcase_fil
 ### Examples
 
 ```bash
-bin/app --mode incremental --quiet example_incremental.txt
-bin/app --mode decremental --quiet example_decremental.txt
-bin/app --mode fullydynamic --quiet example_fullydynamic.txt
-bin/app --mode fullydynamic --quiet --ec example_fullydynamic.txt
+bin/app --mode incremental --quiet data/example_incremental.txt
+bin/app --mode decremental --quiet data/example_decremental.txt
+bin/app --mode fullydynamic --quiet data/example_fullydynamic.txt
+bin/app --mode fullydynamic --quiet --ec data/example_fullydynamic.txt
 ```
 
 ## Run a Single Benchmark Testcase
@@ -68,7 +68,7 @@ bin/app --mode fullydynamic --quiet --ec example_fullydynamic.txt
 ```bash
 python3 tools/benchmark_runner.py \
   --binary bin/benchmark \
-  --test-dir data/benchmark/testcases \
+  --test-dir data/benchmark/testcasesReal2 \
   --csv-time results/time_vs_error.csv \
   --modes incremental decremental fullydynamic \
   --runs 5 \
