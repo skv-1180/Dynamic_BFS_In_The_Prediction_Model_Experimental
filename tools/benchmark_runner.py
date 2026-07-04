@@ -10,9 +10,6 @@ from pathlib import Path
 
 
 def sanitize_filename(s):
-    """
-    Make a safe filename from testcase/mode/ec tag.
-    """
     return (
         s.replace("/", "_")
          .replace("\\", "_")
@@ -40,12 +37,7 @@ def run_one(binary, tc_file, mode, runs, job_csv_time, job_csv_eta, timeout, use
 
     t0 = time.time()
     try:
-        # result = subprocess.run(
-        #     cmd,
-        #     capture_output=True,
-        #     text=True,
-        #     timeout=timeout
-        # )
+        
         result = subprocess.run(
             cmd,
             stdout=subprocess.PIPE,
@@ -98,12 +90,6 @@ def run_one(binary, tc_file, mode, runs, job_csv_time, job_csv_eta, timeout, use
 
 
 def merge_csv_files(input_files, output_file):
-    """
-    Merge CSV files safely after all parallel jobs finish.
-
-    Keeps the header from the first non-empty file.
-    Skips repeated headers from later files.
-    """
     input_files = [Path(p) for p in input_files if Path(p).exists() and Path(p).stat().st_size > 0]
 
     if not input_files:

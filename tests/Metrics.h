@@ -5,12 +5,11 @@
 
 // Per case-2 event at step j, relative to last matched snapshot i.
 struct StepMetrics {
-    int eta_e{};                 // j - i
-    double eta_v{};              // Σ deg(v) over vertices with wrong level
-    double eta_v_star{};         // Σ deg(v) * |L_j[v] - Lhat_i[v]|
+    int eta_e{};                 
+    double eta_v{};              
+    double eta_v_star{};         
 };
 
-// Aggregate statistics over one full testcase run.
 struct RunMetrics {
     int total_updates{};
     int case1_count{};
@@ -30,8 +29,6 @@ struct RunMetrics {
     double max_eta_v_star{};
 };
 
-// Compute metrics for one case-2 event.
-// pred_level and actual_level are 1-indexed vectors of size n+1.
 StepMetrics computeStepMetrics(
     int n,
     int eta_e,

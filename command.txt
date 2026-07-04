@@ -8,16 +8,15 @@ bin/app --mode fullydynamic --quiet data/example_fullydynamic.txt
 bin/app --mode fullydynamic --ec nontrivial data/example_fullydynamic.txt
 bin/app --mode fullydynamic --quiet generator/testcases/predReal/3/graph_mode_fullydynamic_err0.50_graph_subset_n10000_m20000_mode_2_.txt 
 
-# Fallback remaining  - need to count the operation - too complex
 
-bin/app --mode fullydynamic --quiet testcases/erdosRenyi/withPredictedEdges/pred_50_n100_m0_215_m_100_mode_2.txt 
-bin/app --mode decremental --quiet testcases/erdosRenyi/withPredictedEdges/pred_50_n100_m0_215_m_100_mode_1.txt 
  
+# benchmark
 
 
-bin/app --mode fullydynamic --quiet generator/testcases/predReal/dense6/graph_mode_fullydynamic_err0.50_graph_subset_n1000_m30000_mode_2_.t
-./bin/benchmark --mode fullydynamic --runs 1 --csv-time time2.csv --csv-eta eta2.csv  generator/testcases/predReal/dense7/graph_mode_fullydynamic_err0.50_graph_subset_n1000_m30000_mode_2_.txt
-xt
+fullydynamic
+./bin/benchmark --mode fullydynamic --runs 1 --csv-time time2.csv --csv-eta eta2.csv data/benchmark/testcasesReal2/graph_mode_fullydynamic_err0.68_graph_subset_n500_m2000_mode_2_.txt
+./bin/benchmark --mode fullydynamic --ec --runs 1 --csv-time time2.csv --csv-eta eta2.csv data/benchmark/testcasesReal2/graph_mode_fullydynamic_err0.68_graph_subset_n500_m2000_mode_2_.txt
+
 
 # python -----------------------------------------------------------------
 deactivate 2>/dev/null
@@ -29,6 +28,7 @@ source venv/bin/activate
 
 python -m pip install --upgrade pip
 python -m pip install -r requirements.txt
+
 # with ec -----------------------------------------------------------------
 Both
 python3 tools/benchmark_runner.py \
@@ -45,84 +45,16 @@ python3 tools/benchmark_runner.py \
   --binary bin/benchmark \
   --test-dir data/benchmark/testcases \
   --csv-time results/time_vs_error.csv \
-  --csv-eta results/eta_scatter.csv \
   --modes incremental decremental fullydynamic \
   --runs 5 \
   --ec-modes on
 
 python3 tools/plot_results.py \
-  --split-ec \
   --output-dir results/plots \
   --time-csv results/time_vs_error.csv
+
+
+python tools\plot_results.py --split-ec  --output-dir results\plots --time-csv results\time_vs_error.csv
   
  # --eta-csv results/eta_scatter.csv \
 
-time python3 tools/benchmark_runner.py \
-  --binary bin/benchmark \
-  --csv-eta results/eta_scatter.csv \
-  --modes incremental decremental fullydynamic \
-  --runs 1 \
-  --ec-modes off \
-  --timeout 1000 \
-  --test-dir generator/fdTest/predReal/new500_1 \
-  --csv-time results/time_vs_error_new500_1.csv \
-  --parallel 16 \
-  2> error.txt
-
-#inc dec
-time python3 tools/benchmark_runner.py \
-  --binary bin/benchmark \
-  --csv-eta results/eta_scatter.csv \
-  --modes incremental decremental fullydynamic \
-  --runs 1 \
-  --ec-modes off \
-  --timeout 6000 \
-  --test-dir generator/incdec/predReal/set4 \
-  --csv-time results/time_vs_error_set4.csv \
-  --parallel 1 \
-  2> error.txt
-
-
-  
------------------------
-mingw32-make -f Makefile.win
-.\bin\app.exe
-.\bin\app.exe --mode incremental --quiet data/benchmark/testcases/graph_synthetic_mode_incremental_strategy_prefix_err1.00_case00_m200.txt 
-
-mingw32-make -f Makefile.win bench
-.\bin\benchmark.exe
-
-mingw32-make -f Makefile.win clean
-
-/*************
-cd path\to\Prediction_Model_Experimental
-py -m venv venv-win
-.\venv-win\Scripts\Activate.ps1
-
-pip install -r requirements.txt
-
-python your_script.py
-
-python tools/plot_results.py `
-  --time-csv results/time_vs_error.csv `
-  --eta-csv results/eta_scatter.csv `
-  --output-dir results/plots 
-
-python tools/benchmark_runner.py `
-  --binary .\bin\benchmark.exe `
-  --test-dir data\benchmark\testcasesReal `generator/incdec/predReal/set19
-  --csv-time results\time_vs_error.csv `
-  --csv-eta results\eta_scatter.csv `
-  --modes incremental decremental fullydynamic `
-  --runs 1 `
-  --ec-modes off on
-
-python tools/benchmark_runner.py `
-  --binary .\bin\benchmark.exe `
-  --test-dir sfdt `
-  --csv-time results\time_vs_error.csv `
-  --csv-eta results\eta_scatter.csv `
-  --modes incremental decremental fullydynamic `
-  --runs 5 `
-  --ec-modes off on
-  --timeout 600

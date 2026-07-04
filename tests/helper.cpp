@@ -40,16 +40,6 @@ double extractErrorRate(const std::string& test_case) {
     }
 }
 
-// std::string extractGraphName(const std::string& test_case) {
-//     auto gp = test_case.find("graph_");
-//     if (gp == std::string::npos) return "unknown";
-
-//     auto us = test_case.find('_', gp + 6);
-//     return test_case.substr(gp + 6,
-//                             us == std::string::npos ? std::string::npos
-//                                                     : us - (gp + 6));
-// }
-
 std::string extractGraphName(const std::string& test_case) {
     auto gp = test_case.find("graph_");
     if (gp == std::string::npos) return "unknown";
@@ -73,7 +63,6 @@ std::string extractGraphName(const std::string& test_case) {
 
 std::string timeCSVHeader() {
     return "test_case,graph_name,error_rate,algo,ec,n,m_init,m_updates,"
-       "prediction_accuracy,case1_count,case2_count,"
        "online_total_us,online_avg_us_per_update,"
        "classical_total_us,classical_avg_us_per_update,"
        "speedup_vs_classical";
@@ -112,8 +101,6 @@ Args parseArgs(int argc, char** argv) {
                 std::exit(1);
             }
             a.csv_eta = argv[++i];
-        } else if (s == "--verify") {
-            a.verify = true;
         } else if (s == "--ec") {
             a.errorCorrectionMode = ErrorCorrectionMode::NONTRIVIAL;
         }
@@ -127,29 +114,11 @@ Args parseArgs(int argc, char** argv) {
 
     if (a.input_file.empty()) {
         std::cerr << "Usage: ./benchmark --mode incremental|decremental|fullydynamic "
-                     "[--runs N] [--csv-time file] [--csv-eta file] [--verify] testcase.txt\n";
+                     "[--runs N] [--csv-time file] [--csv-eta file] testcase.txt\n";
         std::exit(1);
     }
 
     return a;
-}
-
-bool verifyResult(const QueryResult& r, const BFSState& real, int n) {
-    BFSState check(n, real.source);
-    check.outAdj = real.outAdj;
-    check.inAdj = real.inAdj;
-    check.computeBFS();
-
-    for (int v = 1; v <= n; ++v) {
-        if (r.level[v] != check.level[v]) {
-            std::cerr << "[MISMATCH] step=" << r.step
-                      << " v=" << v
-                      << " got=" << r.level[v]
-                      << " expected=" << check.level[v] << "\n";
-            return false;
-        }
-    }
-    return true;
 }
 
 void ensureCSVHeader(const std::string& path, const std::string& header) {
@@ -187,9 +156,9 @@ void appendTimeRow(std::ofstream& out,
         << n << ","
         << m_init << ","
         << m_updates << ","
-        << ff(rm.prediction_accuracy) << ","
-        << rm.case1_count << ","
-        << rm.case2_count << ","
+        // << ff(rm.prediction_accuracy) << ","
+        // << rm.case1_count << ","
+        // << rm.case2_count << ","
         << ff(online.total_us) << ","
         << ff(online.avg_us_per_update) << ","
         << ff(classical.total_us) << ","

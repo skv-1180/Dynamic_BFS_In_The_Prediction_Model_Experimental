@@ -13,7 +13,7 @@ static inline double elapsed_us(Clock::time_point t0, Clock::time_point t1)
     return Micros(t1 - t0).count();
 }
 
-static void iitdInsert(BFSState& s, int x, int y)
+static void insert_edge(BFSState& s, int x, int y)
 {
     s.addEdge(x, y);
     if (s.level[x] == INF_LEVEL) return;
@@ -32,7 +32,7 @@ static void iitdInsert(BFSState& s, int x, int y)
         for (int a : L[i])
         {
             for (int v : s.outAdj[a])
-            {  // N(a) = out-neighbours of a
+            {  
                 if (s.level[v] > s.level[a] + 1)
                 {
                     s.parent[v] = a;
@@ -44,19 +44,17 @@ static void iitdInsert(BFSState& s, int x, int y)
     }
 }
 
-static void iitdDelete(BFSState& s,
-                       std::vector<std::vector<int>>& A, int u, int v)
+static void remove_edge(BFSState& s,
+                        std::vector<std::vector<int>>& A, int u, int v)
 {
     s.removeEdge(u, v);
-    // Remove u from A[v]
     auto& Av = A[v];
     Av.erase(std::remove(Av.begin(), Av.end(), u), Av.end());
 
-    if (s.parent[v] != u) return;  // not parent edge, BFS tree unaffected
+    if (s.parent[v] != u) return;  
 
     int n = s.n;
 
-    // Find T(v): subtree of T rooted at v, organised by original distance
     std::vector<std::vector<int>> Li(n + 2);
     std::queue<int> q;
     q.push(v);
@@ -79,7 +77,6 @@ static void iitdDelete(BFSState& s,
             s.parent[w] = NO_PARENT;
         }
 
-    // Process level by level (IITD Algorithm 1 core loop)
     for (int i = 1; i <= n; ++i)
     {
         for (int ji = 0; ji < (int)Li[i].size(); ++ji)
@@ -88,7 +85,6 @@ static void iitdDelete(BFSState& s,
             auto& Ay = A[y];
             bool found = false;
 
-            // Scan A_y: remove useless candidates, stop when valid parent found
             std::size_t k = 0;
             while (k < Ay.size())
             {
@@ -111,9 +107,7 @@ static void iitdDelete(BFSState& s,
 
             if (!found)
             {
-                // A_y exhausted → y must go to level i+1
                 if (i < n) Li[i + 1].push_back(y);
-                // Reset A_y = N_y (all current in-neighbours of y)
                 A[y].assign(s.inAdj[y].begin(), s.inAdj[y].end());
             }
         }
@@ -140,7 +134,7 @@ AlgoTiming timeClassicalIncremental(
             const auto& e = updates[j];
             auto t0 = Clock::now();
             if (e.type == UpdateType::INSERT)
-                iitdInsert(state, e.u, e.v);
+                insert_edge(state, e.u, e.v);
             auto t1 = Clock::now();
             per_upd[j] = elapsed_us(t0, t1);
             run_total += per_upd[j];
@@ -186,60 +180,7 @@ AlgoTiming timeClassicalDecremental(
             const auto& e = updates[j];
             auto t0 = Clock::now();
             if (e.type == UpdateType::DELETE)
-                iitdDelete(state, A, e.u, e.v);
-            auto t1 = Clock::now();
-            per_upd[j] = elapsed_us(t0, t1);
-            run_total += per_upd[j];
-        }
-        if (run_total < best.total_us)
-        {
-            best.total_us = run_total;
-            best.per_update_us = per_upd;
-        }
-    }
-
-    best.per_update_avg_us = (m > 0) ? best.total_us / m : 0.0;
-    if (!best.per_update_us.empty())
-    {
-        best.per_update_min_us = *std::min_element(best.per_update_us.begin(), best.per_update_us.end());
-        best.per_update_max_us = *std::max_element(best.per_update_us.begin(), best.per_update_us.end());
-    }
-    return best;
-}
-
-AlgoTiming timeClassicalFullyDynamic2(
-    const BFSState& initialState,
-    const EdgeList& updates,
-    int n_runs)
-{
-    AlgoTiming best;
-    best.total_us = std::numeric_limits<double>::max();
-    int m = (int)updates.size();
-
-    for (int run = 0; run < n_runs; ++run)
-    {
-        BFSState state = initialState;
-        std::vector<std::vector<int>> A(state.n + 1);
-        for (int v = 1; v <= state.n; ++v)
-            A[v].assign(state.inAdj[v].begin(), state.inAdj[v].end());
-
-        std::vector<double> per_upd(m);
-        double run_total = 0.0;
-
-        for (int j = 0; j < m; ++j)
-        {
-            const auto& e = updates[j];
-            auto t0 = Clock::now();
-            if (e.type == UpdateType::INSERT)
-            {
-                iitdInsert(state, e.u, e.v);
-                // Add e.u to A[e.v] so it is a candidate parent for future deletions
-                A[e.v].push_back(e.u);
-            }
-            else
-            {
-                iitdDelete(state, A, e.u, e.v);
-            }
+                remove_edge(state, A, e.u, e.v);
             auto t1 = Clock::now();
             per_upd[j] = elapsed_us(t0, t1);
             run_total += per_upd[j];
@@ -283,7 +224,7 @@ AlgoTiming timeClassicalFullyDynamic(
                 state.addEdge(e.u, e.v);
             else
                 state.removeEdge(e.u, e.v);
-            state.computeBFS();  // O(n+m) full BFS
+            state.computeBFS();
             auto t1 = Clock::now();
             per_upd[j] = elapsed_us(t0, t1);
             run_total += per_upd[j];

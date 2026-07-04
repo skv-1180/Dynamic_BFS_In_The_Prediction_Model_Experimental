@@ -74,7 +74,6 @@ std::string timeCSVHeader();
 std::string etaCSVHeader();
 
 Args parseArgs(int argc, char** argv);
-bool verifyResult(const QueryResult& r, const BFSState& real, int n);
 void ensureCSVHeader(const std::string& path, const std::string& header);
 void appendTimeRow(std::ofstream& out,
                    const std::string& test_case,

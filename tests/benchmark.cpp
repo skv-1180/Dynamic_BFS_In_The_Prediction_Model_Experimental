@@ -1,5 +1,4 @@
 #include "benchmark.h"
-
 #include "helper.h"
 
 int main(int argc, char** argv)
@@ -70,28 +69,16 @@ int main(int argc, char** argv)
 
     if (mode == AlgorithmMode::INCREMENTAL)
     {
-        // IncrementalBFS algo(n, src, init, pred, errorCorrMode);
-        // rm = collectMetricsAndEtaRows(algo, init, real, n, test_case, graph_name,
-                                    //   error_rate, algo_name, eta_rows, args.verify);
-
         online = timePredictedOnline<IncrementalBFS>(
             n, src, init, pred, real, args.runs, errorCorrMode);
     }
     else if (mode == AlgorithmMode::DECREMENTAL)
     {
-        // DecrementalBFS algo(n, src, init, pred, errorCorrMode);
-        // rm = collectMetricsAndEtaRows(algo, init, real, n, test_case, graph_name,
-        //                               error_rate, algo_name, eta_rows, args.verify);
-
         online = timePredictedOnline<DecrementalBFS>(
             n, src, init, pred, real, args.runs, errorCorrMode);
     }
     else
     {
-        // FullyDynamicBFS algo(n, src, init, pred, errorCorrMode);
-        // rm = collectMetricsAndEtaRows(algo, init, real, n, test_case, graph_name,
-        //                               error_rate, algo_name, eta_rows, args.verify);
-
         online = timePredictedOnline<FullyDynamicBFS>(
             n, src, init, pred, real, args.runs, errorCorrMode);
     }
@@ -99,7 +86,6 @@ int main(int argc, char** argv)
     classical = timeClassical(mode, init_state, real, args.runs);
 
     ensureCSVHeader(args.csv_time, timeCSVHeader());
-    // ensureCSVHeader(args.csv_eta, etaCSVHeader());
 
     {
         std::ofstream out(args.csv_time, std::ios::app);
@@ -124,33 +110,15 @@ int main(int argc, char** argv)
             classical);
     }
 
-    {
-        // std::ofstream out(args.csv_eta, std::ios::app);
-        // if (!out)
-        // {
-        //     std::cerr << "Cannot open " << args.csv_eta << "\n";
-        //     return 1;
-        // }
-
-        // appendEtaRows(out, eta_rows, ec_label);
-    }
-
     const double speedup =
         (online.total_us > 1e-12) ? classical.total_us / online.total_us : 0.0;
 
     std::cout << "Benchmark complete\n";
     std::cout << "  testcase            : " << test_case << "\n";
     std::cout << "  algorithm           : " << algo_name << "\n";
-    std::cout << "  error_rate          : " << ff(error_rate) << "\n";
-    std::cout << "  updates             : " << m_updates << "\n";
-    std::cout << "  prediction_accuracy : " << ff(rm.prediction_accuracy) << "\n";
-    std::cout << "  case1_count         : " << rm.case1_count << "\n";
-    std::cout << "  case2_count         : " << rm.case2_count << "\n";
     std::cout << "  online_total_us     : " << ff(online.total_us) << "\n";
     std::cout << "  classical_total_us  : " << ff(classical.total_us) << "\n";
-    std::cout << "  speedup             : " << ff(speedup) << "x\n";
     std::cout << "  wrote               : " << args.csv_time << "\n";
-    std::cout << "  wrote               : " << args.csv_eta << "\n";
 
     return 0;
 }

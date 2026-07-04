@@ -17,7 +17,6 @@ StepMetrics computeStepMetrics(
         int lp = pred_level[v];
         int la = actual_level[v];
 
-        // Treat INF as n+1 for arithmetic.
         if (lp == INF_LEVEL) lp = n + 1;
         if (la == INF_LEVEL) la = n + 1;
 

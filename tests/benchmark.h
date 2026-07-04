@@ -33,10 +33,6 @@ RunMetrics collectMetricsAndEtaRows(
         }
 
         QueryResult r = algo.processUpdate(j, real[j - 1], timer);
-        // if (verify && !verifyResult(r, realGraph, n)) {
-        //     std::cerr << "Verification failed at step " << j << "\n";
-        //     std::exit(1);
-        // }
 
         if (r.usedPrediction) {
             ++rm.case1_count;

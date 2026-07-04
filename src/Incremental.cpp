@@ -95,7 +95,7 @@ QueryResult IncrementalBFS::processUpdate(int step, const EdgeUpdate& realUpdate
 // verify 0- indexing for m_realHistory and m_predictedUpdates
 QueryResult IncrementalBFS::processUpdateFromPrev(int step, const EdgeUpdate& realUpdate, Timer& timer)
 {
-    // timer.play();
+    timer.play();
     
     if (predEdgeIdx.count(realUpdate))
     {
@@ -105,7 +105,7 @@ QueryResult IncrementalBFS::processUpdateFromPrev(int step, const EdgeUpdate& re
     {
         maxUpdateIdx = -1;  // Not found
     }
-    // timer.pause();
+    timer.pause();
 
 
     QueryResult result; // should not be included in time

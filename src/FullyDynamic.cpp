@@ -79,11 +79,11 @@ int fall = 0;
 
 QueryResult FullyDynamicBFS::processUpdateTrivial(int step, const EdgeUpdate& realUpdate, Timer& timer)
 {
-    if(step % 10000 == 0){
-        std::cerr << "step: " << step << endl;
-        // std::cerr << "lastMatched: " << m_lastMatched << endl;
-        // std::cerr << "fallback: " << fall << endl;
-    }
+    // if(step % 10000 == 0){
+    //     std::cerr << "step: " << step << endl;
+    // std::cerr << "lastMatched: " << m_lastMatched << endl;
+    // std::cerr << "fallback: " << fall << endl;
+    // }
 
     timer.play();
     realHash.insert(realUpdate);
