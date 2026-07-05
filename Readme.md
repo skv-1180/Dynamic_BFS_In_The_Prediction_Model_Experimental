@@ -1,4 +1,4 @@
-# Experimental Graph Update Benchmark
+# Introduction 
 
 This project implements and benchmarks graph processing workflows for:
 
