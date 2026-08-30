@@ -118,11 +118,9 @@ def merge_csv_files(input_files, output_file):
                 header_written = True
 
             for line in lines[1:]:
-                # Avoid blank lines
                 if not line.strip():
                     continue
 
-                # Avoid repeated header lines
                 if first_header is not None and line == first_header:
                     continue
 
@@ -179,19 +177,16 @@ def main():
         print(f"No .txt files found in {test_dir} filter='{args.filter}'")
         sys.exit(1)
 
-    # Final output directories
     csv_time_path = Path(args.csv_time)
     csv_eta_path = Path(args.csv_eta)
 
     csv_time_path.parent.mkdir(parents=True, exist_ok=True)
     csv_eta_path.parent.mkdir(parents=True, exist_ok=True)
 
-    # Remove old final output files
     for p in [csv_time_path, csv_eta_path]:
         if p.exists():
             p.unlink()
 
-    # Temporary per-job output directory
     temp_root = Path("results/parallel_tmp")
     temp_time_dir = temp_root / "time"
     temp_eta_dir = temp_root / "eta"
